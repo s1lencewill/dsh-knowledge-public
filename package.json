@@ -1,0 +1,90 @@
+{
+  "name": "dsh-knowledge",
+  "version": "0.1.0-alpha.4",
+  "description": "DSH knowledge-base plugin backed by a managed Sirchmunk service",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/browser.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "engine",
+    "ui",
+    "trial",
+    "tools",
+    "samples",
+    "docs/QUICKSTART.md",
+    "docs/LIMITATIONS.md",
+    "docs/VERSION-AND-DEPENDENCIES.md",
+    "docs/RUNTIME-BUILD.md",
+    "cordis.patch.yml",
+    "LICENSE-DRAFT.md",
+    "THIRD-PARTY-NOTICES.md",
+    "README.md",
+    "VERSION",
+    "RELEASE-MANIFEST.json",
+    "docs/PRIVATE-BETA.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/build-client.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "smoke:dsh": "node scripts/smoke-dsh.mjs",
+    "verify:all": "node scripts/verify-all.mjs",
+    "verify:ref-chain": "node scripts/probe-ref-chain.mjs",
+    "verify:lifecycle": "node scripts/verify-lifecycle.mjs",
+    "trial:install": "node trial/install.mjs",
+    "trial:doctor": "node trial/doctor.mjs",
+    "trial:start": "node trial/start.mjs",
+    "trial:stop": "node trial/stop.mjs",
+    "release:pack": "node scripts/package-release.mjs pack",
+    "release:audit": "node scripts/package-release.mjs audit"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "keywords": [
+    "dsh-plugin",
+    "knowledge-base",
+    "sirchmunk",
+    "pdf",
+    "markdown"
+  ],
+  "publishConfig": {
+    "tag": "alpha"
+  }
+}

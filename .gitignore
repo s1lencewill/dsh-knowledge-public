@@ -1,0 +1,9 @@
+node_modules/
+.venv/
+.local/
+lib/
+__pycache__/
+*.pyc
+*.tgz
+.env
+.env.*

@@ -1,0 +1,67 @@
+# The probe profile patch, kept in the repository so the host verification is re-creatable.
+#
+# It is NOT loaded from here. The patch belongs at `$DSH_HOME/profiles/knweb/cordis.patch.yml` (gitignored,
+# project-local). The profile itself is created from the shipped template:
+#
+#     $env:DSH_HOME = "$PWD\.dsh-home"
+#     dsh --profile knweb --from-default-profile web
+#
+# Nothing here touches the user's web profile or the `kn` headless smoke profile.
+#
+# ── how the three stubbed callers are told apart ───────────────────────────────────────────────────────
+# Not by inspecting the request shape ("does it have tools?"), which is what an earlier round did and what
+# this replaces. Each class is separated by an endpoint or by a **declared configuration identifier**:
+#
+#   1. DSH main conversation -> 127.0.0.1:18784, the session's own model id
+#   2. DSH session title     -> 127.0.0.1:18784, `model: title-stub` declared right here on `session-title-llm`
+#   3. Sirchmunk engine      -> 127.0.0.1:18782, its own `LLM_BASE_URL` on the service launch
+#
+# `provider`/`model` are real fields of those rows, so the title call is identified because the deployment says
+# so. Each stub validates its own class, keeps its own counters, and refuses anything it cannot classify with an
+# explicit error instead of answering with another class's response. None of them forwards anywhere.
+#
+# ── corrected 2026-09-27: which adapter carries the conversation ────────────────────────────────────────
+# DSH 0.1.7's `llm-deepseek` adapter is an **Anthropic Messages** client: its own default base URL is
+# `https://api.deepseek.com/anthropic` and it posts to `<baseURL>/v1/messages`. Pointing that adapter at the
+# stub therefore produced `/v1/messages`, which the stub refuses by name ("this endpoint answers the DSH
+# conversation and title calls only") - the page showed `HTTP_404` and the turn failed before any tool ran.
+# The stub is not the thing to change: the probe now routes the conversation and the title through
+# `llm-pi-ai` with `api: openai-completions`, which is the endpoint the stub already answers. `llm-deepseek`
+# stays pointed at the stub anyway, so a call that does go through the Anthropic adapter is refused locally
+# instead of leaving the machine.
+- id: llm-deepseek
+  config:
+    baseURL: http://127.0.0.1:18784
+    apiKeyEnv: HOST_PROBE_STUB_KEY
+
+# `llm-pi-ai` has no config of its own in a template profile, so this replaces nothing. A patch replaces the
+# targeted row's whole `config`, which is why the list below is the complete provider table this profile has.
+- id: llm-pi-ai
+  config:
+    providers:
+      probe-stub:
+        apiKeyEnv: HOST_PROBE_STUB_KEY
+        api: openai-completions
+        baseURL: http://127.0.0.1:18784
+        models:
+          - id: stub-conversation
+          - id: title-stub
+
+- id: agent-default-model
+  config:
+    provider: probe-stub
+    model: stub-conversation
+
+- id: session-title-llm
+  config:
+    targetWords: 5
+    targetCjkCharacters: 10
+    maxInputBytes: 4096
+    maxOutputTokens: 64
+    timeoutMs: 60000
+    provider: probe-stub
+    model: title-stub
+
+- insert:
+    - id: knowledge
+      name: dsh-knowledge

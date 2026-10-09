@@ -1,0 +1,11 @@
+{
+  "libraries": [
+    {
+      "id": "samples",
+      "name": "Trial sample library (synthetic)",
+      "workspace": ".",
+      "root": "library/texts",
+      "syntheticFixture": true
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "documents": {
+    "notes": {
+      "authors": null,
+      "conflicts": [
+        {
+          "detail": "no DOI to cross-check the title against",
+          "kind": "identity"
+        }
+      ],
+      "documentId": "notes",
+      "doi": null,
+      "fileName": "notes.md",
+      "pages": null,
+      "quality": "partial-markdown",
+      "textFile": "notes.md",
+      "textSHA256": "f281b52c7ad14c008ccaf3c449d8f2391b0c601f83f8f26ba89c7fd015aa2101",
+      "titleNormalized": "synthetic laboratory note",
+      "titleRaw": "Synthetic laboratory note",
+      "verification": "undetermined",
+      "year": "2026"
+    },
+    "study": {
+      "authors": "A. Author; B. Author",
+      "conflicts": [],
+      "documentId": "study",
+      "doi": "10.0000/synthetic.probe.study",
+      "fileName": "study.pdf",
+      "pageMap": [
+        {
+          "endLine": 11,
+          "page": 1,
+          "startLine": 1
+        },
+        {
+          "endLine": 19,
+          "page": 2,
+          "startLine": 12
+        },
+        {
+          "endLine": 26,
+          "page": 3,
+          "startLine": 20
+        }
+      ],
+      "pageMapSource": {
+        "auditFile": "audit/study.json",
+        "auditTextSHA256": "2e0da181c9afb6b11e030eb9dbac3a3da44c92e7444a77a073ff71de3c4bb1dd",
+        "extractorVersion": "2.0",
+        "mappingVersion": 1,
+        "pdfSHA256": "aaf23e8b6ea92426949bbbf16e74ad36faad20a9c06e3de0a9ae9dd0b48cf778",
+        "source": "extraction-audit"
+      },
+      "pages": 3,
+      "pdfSHA256": "aaf23e8b6ea92426949bbbf16e74ad36faad20a9c06e3de0a9ae9dd0b48cf778",
+      "quality": "clean",
+      "textFile": "study.txt",
+      "textSHA256": "2e0da181c9afb6b11e030eb9dbac3a3da44c92e7444a77a073ff71de3c4bb1dd",
+      "titleNormalized": "thermal stability of the synthetic sample",
+      "titleRaw": "Thermal Stability of the Synthetic Sample",
+      "verification": "verified",
+      "year": "2026"
+    }
+  },
+  "sampleOf": "synthetic host-probe fixture (self-made: generated with PyMuPDF, extracted with the real extractor)"
+}

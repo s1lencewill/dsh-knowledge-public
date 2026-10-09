@@ -1,0 +1,130 @@
+{
+  "extractor": "extract-literature",
+  "extractorVersion": "2.0",
+  "parameters": {
+    "lineTolerance": 2.0,
+    "marginFraction": 0.055,
+    "columnMinShare": 0.2,
+    "columnMinGutter": 0.12
+  },
+  "pdf": "study.pdf",
+  "pdfSHA256": "aaf23e8b6ea92426949bbbf16e74ad36faad20a9c06e3de0a9ae9dd0b48cf778",
+  "pdfBytes": 5032,
+  "text": "study",
+  "textSHA256": "2e0da181c9afb6b11e030eb9dbac3a3da44c92e7444a77a073ff71de3c4bb1dd",
+  "textBytes": 620,
+  "pages": [
+    {
+      "page": 1,
+      "startLine": 1,
+      "endLine": 11,
+      "characters": 253,
+      "nonWhitespace": 215,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "singleCharLines": 1,
+      "columns": 1
+    },
+    {
+      "page": 2,
+      "startLine": 12,
+      "endLine": 19,
+      "characters": 172,
+      "nonWhitespace": 148,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "singleCharLines": 1,
+      "columns": 1
+    },
+    {
+      "page": 3,
+      "startLine": 20,
+      "endLine": 26,
+      "characters": 139,
+      "nonWhitespace": 121,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "singleCharLines": 1,
+      "columns": 1
+    }
+  ],
+  "pageAudits": [
+    {
+      "page": 1,
+      "lines": 10,
+      "characters": 253,
+      "nonWhitespace": 215,
+      "singleCharLines": 1,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "captions": 0,
+      "headings": 0,
+      "headerFooter": 1,
+      "mergedLatinTokens": [],
+      "columns": 1,
+      "layoutAmbiguous": false,
+      "regionAlternations": 1,
+      "multiLineFragments": 0,
+      "clampedFragments": 0,
+      "embeddedBreaksFolded": 0,
+      "inlineMarkupMerged": 0,
+      "width": 595.0,
+      "height": 842.0
+    },
+    {
+      "page": 2,
+      "lines": 7,
+      "characters": 172,
+      "nonWhitespace": 148,
+      "singleCharLines": 1,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "captions": 0,
+      "headings": 0,
+      "headerFooter": 1,
+      "mergedLatinTokens": [],
+      "columns": 1,
+      "layoutAmbiguous": false,
+      "regionAlternations": 1,
+      "multiLineFragments": 0,
+      "clampedFragments": 0,
+      "embeddedBreaksFolded": 0,
+      "inlineMarkupMerged": 0,
+      "width": 595.0,
+      "height": 842.0
+    },
+    {
+      "page": 3,
+      "lines": 6,
+      "characters": 139,
+      "nonWhitespace": 121,
+      "singleCharLines": 1,
+      "replacementChars": 0,
+      "privateUseChars": 0,
+      "captions": 1,
+      "headings": 0,
+      "headerFooter": 1,
+      "mergedLatinTokens": [],
+      "columns": 1,
+      "layoutAmbiguous": false,
+      "regionAlternations": 1,
+      "multiLineFragments": 0,
+      "clampedFragments": 0,
+      "embeddedBreaksFolded": 0,
+      "inlineMarkupMerged": 0,
+      "width": 595.0,
+      "height": 842.0
+    }
+  ],
+  "flags": [
+    {
+      "page": 3,
+      "flag": "caption-present",
+      "count": 1
+    }
+  ],
+  "singleCharLines": 3,
+  "replacementChars": 0,
+  "privateUseChars": 0,
+  "ocrPages": []
+}

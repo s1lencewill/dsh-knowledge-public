@@ -1,0 +1,21 @@
+dsh-knowledge 0.1.0-alpha.3
+Windows personal knowledge-base Q&A trial — based on Sirchmunk, no embedding-model branch, verifiable provenance.
+
+Status: trial build for authorised private trial only. Not a release, not published, and not licensed for
+redistribution yet — the licence is still an undecided draft, see LICENSE-DRAFT.md (which ships as that file,
+not as LICENSE, precisely so nobody mistakes a draft for the operative terms).
+
+Contents
+  lib/       built DSH plugin and browser bundle
+  engine/    local knowledge service (Python 3.13) and its pinned dependency lock
+  ui/        source of the browser bundle
+  trial/     install / doctor / start / stop
+  samples/   self-made synthetic sample library
+  tools/     the AGPL patch applied to rga, and its build notes
+  docs/      QUICKSTART, LIMITATIONS, VERSION-AND-DEPENDENCIES, RUNTIME-BUILD
+
+Not included on purpose: the container runtime (AGPL-licensed modified rga plus the GPL packages igraph and
+leidenalg — see THIRD-PARTY-NOTICES.md), any credential, any session log, any development data.
+
+Requirements: Windows 10/11 with AppContainer support, Node >= 24, DSH = 0.2.0-rc.2, Python 3.13, a model
+provider, and a container runtime you place yourself.

@@ -1,0 +1,71 @@
+﻿diff --git a/src/config.rs b/src/config.rs
+index fd23ef2..3b66381 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -52,9 +52,20 @@ impl std::fmt::Display for CachePath {
+ }
+ impl Default for CachePath {
+     fn default() -> Self {
+-        let pd = project_dirs().expect("could not get cache path");
+-        let app_cache = pd.cache_dir();
+-        Self(app_cache.to_str().expect("cache path not utf8").to_owned())
++        // DSH patch (see tools/rga/README.md): inside a Windows AppContainer the known-folder
++        // lookup that directories_next relies on fails, and this Default is evaluated while clap
++        // parses arguments, so upstream panics before any command line flag can take effect.
++        // Prefer an explicit RGA_CACHE_DIR, then the project directory when it resolves, then the
++        // OS temp directory (the isolated launcher points TEMP at a writable state directory).
++        if let Some(explicit) = std::env::var_os("RGA_CACHE_DIR").filter(|value| !value.is_empty()) {
++            return Self(PathBuf::from(explicit).to_string_lossy().into_owned());
++        }
++        if let Ok(project) = project_dirs() {
++            if let Some(text) = project.cache_dir().to_str() {
++                return Self(text.to_owned());
++            }
++        }
++        Self(std::env::temp_dir().join("ripgrep-all-cache").to_string_lossy().into_owned())
+     }
+ }
+ 
+@@ -272,12 +283,14 @@ fn json_merge(a: &mut Value, b: &Value) {
+ }
+ 
+ fn read_config_file(path_override: Option<String>) -> Result<(String, Value)> {
+-    let proj = project_dirs()?;
+-    let config_dir = proj.config_dir();
++    // DSH patch: a missing project directory must not abort; without one the default config file
++    // simply does not exist and configuration stays at its defaults.
++    let config_dir = project_dirs().ok().map(|project| project.config_dir().to_path_buf());
+     let config_filename = path_override
+         .as_ref()
+         .map(PathBuf::from)
+-        .unwrap_or_else(|| config_dir.join("config.jsonc"));
++        .unwrap_or_else(|| config_dir.as_deref().map(|dir| dir.join("config.jsonc"))
++            .unwrap_or_else(|| PathBuf::from("config.jsonc")));
+     let config_filename_str = config_filename.to_string_lossy().into_owned();
+     if config_filename.exists() {
+         let config_file_contents = {
+@@ -301,9 +314,9 @@ fn read_config_file(path_override: Option<String>) -> Result<(String, Value)> {
+         Ok((config_filename_str, config_json))
+     } else if let Some(p) = path_override.as_ref() {
+         Err(anyhow::anyhow!("Config file not found: {}", p))?
+-    } else {
++    } else if let Some(config_dir) = config_dir {
+         // write default config
+-        std::fs::create_dir_all(config_dir)?;
++        std::fs::create_dir_all(&config_dir)?;
+         let mut schemafile = File::create(config_dir.join("config.v1.schema.json"))?;
+ 
+         schemafile.write_all(
+@@ -316,6 +329,12 @@ fn read_config_file(path_override: Option<String>) -> Result<(String, Value)> {
+             config_filename_str,
+             serde_json::Value::Object(Default::default()),
+         ))
++    } else {
++        // DSH patch: no project directory (an AppContainer) - keep the built-in defaults.
++        Ok((
++            config_filename_str,
++            serde_json::Value::Object(Default::default()),
++        ))
+     }
+ }
+ fn read_config_env() -> Result<Value> {
