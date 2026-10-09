@@ -934,7 +934,11 @@
   "transformations": [
     "scripts/verify-lifecycle.mjs",
     "tests/client-bundle.test.mjs",
-    "tests/failures.test.mjs"
+    "tests/failures.test.mjs",
+    "scripts/build-rga-patched.py",
+    "package.json",
+    "VERSION",
+    "README.md"
   ],
   "excludedScripts": [
     "scripts/accept/v4-closing-host.mjs",
@@ -954,11 +958,13 @@
     "reason": "author-license-and-repository-choice-pending"
   },
   "preparedFiles": {
+    "tools/rga/LICENSE.md": "5e01d167766c9eb7b0ec55cdcf676152494122c53850f1c1f2df26d7aba0736f",
+    "tools/rga/SOURCE.json": "6fb2f2fecbac4c8ce91064e83e4a35df0b9ee6add6cb96cda2319ccdcd2c8682",
     ".gitignore": "fedadaca4ae0fcfefb1380dc45d60b4b50c2e14a2c2cb4e1159d857ffef2cef4",
     "CHANGELOG.md": "da77f4969f9e13d161bbb72571c8b03052c432c3fc67ff310d5e8f315cadd11c",
     "CONTRIBUTING.md": "ac41c17e449c3283a681ac88e4087aa21e5aebb0799acb734d13a1ce1cf99b68",
     "LICENSE-DRAFT.md": "030ba5c520b93242d87a5773940024a12587157c34789ac4594ec302a9b5546e",
-    "README.md": "47943921fc1638299b09673e7bdc1317e132f494062081b7b54f4308b0ab9ac1",
+    "README.md": "05d84a4aeb73553825e6772fa4f7c22e0c1826d0ff428027933f34ed31101c08",
     "SECURITY.md": "f2ab2575ec15c04053415a1a81e29c7e4723ed2c606cafda572c10a59ae7cff9",
     "THIRD-PARTY-NOTICES.md": "8e15ca95d646dbb4f8efdfaec6792e2036beddc2462c32324289c61c2c8fd7cd",
     "VERSION": "b29a1118f7e1e042281de4a1006e2424ba7ef8f68c4c448249948e1efe9102ae",
@@ -997,7 +1003,7 @@
     "engine/worker.py": "d7238916760816b3491c7ec3e6cb44b82c89640e32d842f94081e397e79d3e50",
     "files/note.md": "04bd3bae50ac1aaa03fd7f372d1366885ec83e16c06bb23a9f3fa15347d385c7",
     "package-lock.json": "0df487f616059e5d7726107bb31c8c1682203618b6ec09c68fcd5d752a70b9cf",
-    "package.json": "75f4a5027956fa90622acefd715d6e64f77a9536bcbffcc7dc5c3721e4b2e50a",
+    "package.json": "87b00cdf881817abd672b1e84ff6897ff1931054c4e0646e5bb4895677a8e22a",
     "samples/README.md": "ed03aceca5ce874168c17acf4875d359cea6308b70728d5171868106b0595c49",
     "samples/catalogue.json": "f44aa55cc3f743940ada2054a2000c1bde76a8feaab21e4c89e75b18fcb3c62a",
     "samples/libraries.template.json": "10f4be926046f14d45706bdeb22481dcd12c173ce847dc8721011874d400252f",
@@ -1017,7 +1023,7 @@
     "scripts/build-identity-catalog.py": "5b61ce27069339b2385ae7f34d399cb4ea80ee93aa896c26b2aee494a607e461",
     "scripts/build-literature-corpus.py": "72e9c3e567843fa087b5a89d2a69147a7f7f968fad10f51feb015545b140c491",
     "scripts/build-markdown-library.py": "f7cfdd0ba63622f7636502b1b4556ed02043cd8b044e4fbb47b1e987d3d3f3d2",
-    "scripts/build-rga-patched.py": "7a8a7617cd1651cbe2d352a64b2e3ed06bb525bd47e57dbff95ef7f9520bb1d9",
+    "scripts/build-rga-patched.py": "ec5ddd1804f56c0e601b17f7cdb8c8f45796ad18af551356acba183ff2f42ab2",
     "scripts/excerpt-offsets.mjs": "3be7f498c99b26f47c3031ea2d0a5c06b998923677fa93cb28f432cec8f2ebd8",
     "scripts/extract-literature.py": "1b868dc38111cbf12409d99832b6db8ca8642926d9c575a58c36663c2d226671",
     "scripts/extract-session.mjs": "a491537b5746bf79f668451cbc7c883cf9e5d1ba5d08efe416009640e390d826",
@@ -1156,5 +1162,6 @@
     "tsconfig.json": "0262c41f32b86671f07a136402e670a76533ec2eac309678057bca07dcb1bf28",
     "ui/source-card.js": "9874a33db2638853781fa683303b9e2c4676a0206c6df88f113d4ac998e264fa"
   },
-  "packageAllowlist": "extensions-only; generated Python caches excluded"
+  "packageAllowlist": "extensions-only; generated Python caches excluded",
+  "sourcePatchAttribution": "tools/rga/LICENSE.md and SOURCE.json"
 }

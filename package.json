@@ -35,7 +35,12 @@
     "README.md",
     "VERSION",
     "RELEASE-MANIFEST.json",
-    "docs/PRIVATE-BETA.md"
+    "docs/PRIVATE-BETA.md",
+    "tools/rga/SOURCE.json",
+    "docs/PRIVACY.md",
+    "docs/ALPHA-READINESS.md",
+    "SECURITY.md",
+    "CHANGELOG.md"
   ],
   "dsh": {
     "bundle": {

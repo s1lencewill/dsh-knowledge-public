@@ -21,3 +21,7 @@ Retrieval may miss a document or one side of a comparison. Exact source coordina
 ## Licensing
 
 The author has not yet confirmed the original-code license. This preparation is marked UNLICENSED/private to prevent accidental npm publication. Third-party sources keep their own terms. See LICENSE-DRAFT.md and THIRD-PARTY-NOTICES.md; the rga patch is governed by its upstream terms.
+
+## Source validation
+
+Generate only synthetic local fixtures with `.venv/Scripts/python.exe scripts/setup-fixtures.py` before the Python suite. Then run `.venv/Scripts/python.exe -m unittest discover -s tests -p "*_test.py"`. Engine/AppContainer tests require an explicitly prepared runtime and tools; report their skips separately.

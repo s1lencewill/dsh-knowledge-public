@@ -20,8 +20,18 @@ REPO = "https://github.com/phiresky/ripgrep-all.git"
 SOURCE = BASE / ".local/rga-src"
 PATCH = BASE / "tools/rga/cache-path-fallback.patch"
 OUTPUT = BASE / ".local/tools/rga-patched/rga.exe"
-VCVARS = Path(r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat")
-PROXY = os.environ.get("HTTPS_PROXY") or "http://127.0.0.1:7897"
+def find_vcvars():
+    configured = os.environ.get("DSH_KNOWLEDGE_VCVARS64")
+    if configured:
+        return Path(configured)
+    vswhere = Path(os.environ.get("ProgramFiles(x86)", "C:/Program Files (x86)")) / "Microsoft Visual Studio/Installer/vswhere.exe"
+    if not vswhere.is_file():
+        return None
+    result = subprocess.run([str(vswhere), "-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"], capture_output=True, text=True)
+    return Path(result.stdout.strip()) / "VC/Auxiliary/Build/vcvars64.bat" if result.returncode == 0 and result.stdout.strip() else None
+
+VCVARS = find_vcvars()
+PROXY = os.environ.get("HTTPS_PROXY")
 
 
 def run(command, **kwargs):
@@ -38,7 +48,9 @@ def fetch(force):
         return
     if SOURCE.exists():
         shutil.rmtree(SOURCE)
-    env = dict(os.environ, HTTPS_PROXY=PROXY, HTTP_PROXY=PROXY)
+    env = dict(os.environ)
+    if PROXY:
+        env.update(HTTPS_PROXY=PROXY, HTTP_PROXY=PROXY)
     run(["git", "-c", "http.sslbackend=openssl", "clone", "--depth", "1", "--branch", TAG, REPO, str(SOURCE)], env=env)
 
 
@@ -58,10 +70,12 @@ def apply_patch():
 
 
 def build():
-    if not VCVARS.is_file():
-        raise SystemExit("vcvars64.bat not found at %s" % VCVARS)
+    if VCVARS is None or not VCVARS.is_file():
+        raise SystemExit("MSVC Build Tools missing; install C++ tools or set DSH_KNOWLEDGE_VCVARS64")
     command = 'call "%s" >nul 2>&1 && cargo build --release --locked --manifest-path "%s"' % (VCVARS, SOURCE / "Cargo.toml")
-    env = dict(os.environ, HTTPS_PROXY=PROXY, HTTP_PROXY=PROXY, CARGO_TERM_COLOR="never")
+    env = dict(os.environ, CARGO_TERM_COLOR="never")
+    if PROXY:
+        env.update(HTTPS_PROXY=PROXY, HTTP_PROXY=PROXY)
     print("building (this takes minutes on a cold registry) ...")
     run(["cmd", "/c", command], env=env)
 
