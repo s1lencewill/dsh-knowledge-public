@@ -40,7 +40,8 @@
     "docs/PRIVACY.md",
     "docs/ALPHA-READINESS.md",
     "SECURITY.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
   ],
   "dsh": {
     "bundle": {

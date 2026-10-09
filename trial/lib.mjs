@@ -29,11 +29,11 @@ export const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** Program files the instance needs. Anything not listed is not copied, and that is the point. */
 export const PROGRAM_FILES = [
   'package.json', 'cordis.patch.yml', 'lib', 'engine', 'ui', 'trial', 'tools', 'samples',
-  'README.md', 'LICENSE-DRAFT.md', 'THIRD-PARTY-NOTICES.md', 'VERSION', 'RELEASE-MANIFEST.json',
+  'README.md', 'LICENSE-DRAFT.md', 'THIRD-PARTY-NOTICES.md', 'VERSION', 'RELEASE-MANIFEST.json', 'SECURITY.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
 ];
 /** Documentation the user reads. Kept as a list so `install` can report what it is copying. */
 export const DOC_FILES = ['docs/QUICKSTART.md', 'docs/LIMITATIONS.md', 'docs/VERSION-AND-DEPENDENCIES.md',
-  'docs/RUNTIME-BUILD.md', 'docs/PRIVATE-BETA.md'];
+  'docs/RUNTIME-BUILD.md', 'docs/PRIVATE-BETA.md', 'docs/PRIVACY.md', 'docs/ALPHA-READINESS.md'];
 /** Directories whose absence means this is not a package at all. */
 export const REQUIRED_APP_PATHS = ['package.json', 'lib/index.js', 'lib/browser.js', 'engine/service.py',
   'ui/source-card.js', 'cordis.patch.yml',

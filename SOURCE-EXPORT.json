@@ -938,7 +938,8 @@
     "scripts/build-rga-patched.py",
     "package.json",
     "VERSION",
-    "README.md"
+    "README.md",
+    "trial/lib.mjs"
   ],
   "excludedScripts": [
     "scripts/accept/v4-closing-host.mjs",
@@ -958,8 +959,7 @@
     "reason": "author-license-and-repository-choice-pending"
   },
   "preparedFiles": {
-    "tools/rga/LICENSE.md": "5e01d167766c9eb7b0ec55cdcf676152494122c53850f1c1f2df26d7aba0736f",
-    "tools/rga/SOURCE.json": "6fb2f2fecbac4c8ce91064e83e4a35df0b9ee6add6cb96cda2319ccdcd2c8682",
+    ".gitattributes": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
     ".gitignore": "fedadaca4ae0fcfefb1380dc45d60b4b50c2e14a2c2cb4e1159d857ffef2cef4",
     "CHANGELOG.md": "da77f4969f9e13d161bbb72571c8b03052c432c3fc67ff310d5e8f315cadd11c",
     "CONTRIBUTING.md": "ac41c17e449c3283a681ac88e4087aa21e5aebb0799acb734d13a1ce1cf99b68",
@@ -1003,7 +1003,7 @@
     "engine/worker.py": "d7238916760816b3491c7ec3e6cb44b82c89640e32d842f94081e397e79d3e50",
     "files/note.md": "04bd3bae50ac1aaa03fd7f372d1366885ec83e16c06bb23a9f3fa15347d385c7",
     "package-lock.json": "0df487f616059e5d7726107bb31c8c1682203618b6ec09c68fcd5d752a70b9cf",
-    "package.json": "87b00cdf881817abd672b1e84ff6897ff1931054c4e0646e5bb4895677a8e22a",
+    "package.json": "f550b9d7560009280b1236bcd976f5207d1aaa87d601da1c710b78389ac07cec",
     "samples/README.md": "ed03aceca5ce874168c17acf4875d359cea6308b70728d5171868106b0595c49",
     "samples/catalogue.json": "f44aa55cc3f743940ada2054a2000c1bde76a8feaab21e4c89e75b18fcb3c62a",
     "samples/libraries.template.json": "10f4be926046f14d45706bdeb22481dcd12c173ce847dc8721011874d400252f",
@@ -1147,7 +1147,9 @@
     "tests/workbench-polish.test.mjs": "5ac2551c06c70c4d8a67cb3fd126ca3fe45e017dc52faad1a9ca97a071fb50b9",
     "tests/workbench.test.mjs": "0949bfec98fb18151bef7f1eddce284f4a24ebf3df0847671d81bc2aadb68a44",
     "tests/worker_test.py": "cf40838267096b80f948ff7eeac20184e17fc1368fa03867485ca686dcf6f45a",
+    "tools/rga/LICENSE.md": "5e01d167766c9eb7b0ec55cdcf676152494122c53850f1c1f2df26d7aba0736f",
     "tools/rga/README.md": "d63dd35ea20be3ec21eb0da3f0ee063958a289e0d9613e87d6102f9a4b207cb2",
+    "tools/rga/SOURCE.json": "6fb2f2fecbac4c8ce91064e83e4a35df0b9ee6add6cb96cda2319ccdcd2c8682",
     "tools/rga/cache-path-fallback.patch": "aed4da4e353e6ce1f12491ee65db483be2040fe88d0e266dea0f6a53c2c69670",
     "trial/artifact.mjs": "df9166bd94206ea4e808d4f525df6da362f9818593f94138351edae02fd76fc7",
     "trial/background-launcher.cs": "9729d07a02c6a7fff7279b3108c4c51f493e418fca0680eaa444a9c537475cad",
@@ -1155,7 +1157,7 @@
     "trial/doctor.mjs": "f79f177164a21ce0d74e32190f428813abeec54582ae79efbe88140ca5b416c3",
     "trial/host-dependencies.mjs": "d6e58140dc478db374e79d1d20c6bbb07fb5fd7640c53be4a0e64f97e7e26451",
     "trial/install.mjs": "14701111416405be56606cff3d4629bd39210021579025d1a68eff017414346f",
-    "trial/lib.mjs": "9026c540554a3f15cac5568f933c2ffd84bdcdc1793f83d93af7765d86e02bce",
+    "trial/lib.mjs": "9fd84bc1038f9bb0131b5e8898cbf563c5944e2dab9ecf5504468cda8f726494",
     "trial/service-task.mjs": "2c83749d98c14dfb928487a73995883abb03bd99620d45ef15aaf59f5fbdbd3e",
     "trial/start.mjs": "7584b6b553108b50c60d4a1b8040c97109223e527c415445a51dce44217680af",
     "trial/stop.mjs": "294f31180339a7c5725ab74f1f9f047831098156620240279e7380e17a700e28",
