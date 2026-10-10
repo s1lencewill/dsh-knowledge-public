@@ -2,7 +2,7 @@
 
 Sirchmunk-backed personal knowledge workspace for DSH. Search PDF/Markdown content with an ordinary LLM, read source windows, and inspect answer citations in the sidebar. No embedding model is required.
 
-**Local release preparation only. License confirmation, clean Windows installation and marketplace update acceptance are pending. This snapshot is not publicly released.**
+**Local release preparation only. Original-code license is Apache-2.0; account permissions, clean Windows installation and marketplace update acceptance are pending. This snapshot is not publicly released.**
 
 ## Requirements and setup
 
@@ -20,7 +20,7 @@ Retrieval may miss a document or one side of a comparison. Exact source coordina
 
 ## Licensing
 
-The author has not yet confirmed the original-code license. This preparation is marked UNLICENSED/private to prevent accidental npm publication. Third-party sources keep their own terms. See LICENSE-DRAFT.md and THIRD-PARTY-NOTICES.md; the rga patch is governed by its upstream terms.
+Original project code is Apache-2.0; see LICENSE and NOTICE. Third-party components retain their own licenses; the rga source modification is AGPL-3.0-or-later. The candidate remains private:true until account permissions, cold runtime construction, clean Windows and marketplace update gates pass. Licensing is confirmed; publication readiness is not.
 
 ## Source validation
 

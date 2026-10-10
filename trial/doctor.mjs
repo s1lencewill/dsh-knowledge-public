@@ -174,14 +174,15 @@ record(check('plugin composed into the profile', () => {
   const patch = existsSync(patchPath) ? readFileSync(patchPath, 'utf8') : '';
   if (!manifest) return { state: 'fail', detail: 'the profile has no package.json; re-run install' };
   const bundles = manifest.dsh?.profile?.bundles ?? [];
-  if (!bundles.includes('dsh-knowledge')) {
+  const packageName = readJson(join(paths.app, 'package.json')).name;
+  if (!bundles.includes(packageName)) {
     return { state: 'fail', detail: 'dsh.profile.bundles does not name dsh-knowledge; the plugin is not composed '
       + 'at all (re-run install)' };
   }
-  if (!existsSync(join(profileDir, 'node_modules', 'dsh-knowledge'))) {
+  if (!existsSync(join(profileDir, 'node_modules', packageName))) {
     return { state: 'fail', detail: 'the bundle is not resolvable from the profile node_modules; re-run install' };
   }
-  const dependency = manifest.dependencies?.['dsh-knowledge'] ?? '';
+  const dependency = manifest.dependencies?.[packageName] ?? '';
   if (!/^link:/.test(dependency)) {
     return { state: 'fail', detail: 'the profile dependency is not a link: into this instance; re-run install' };
   }

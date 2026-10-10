@@ -32,6 +32,7 @@ function fixture(t) {
   const profileDir = join(profilesDir, CONFIG.profileName);
   const app = join(root, 'app');
   mkdirSync(join(app, 'lib'), { recursive: true });
+  writeFileSync(join(app, 'package.json'), JSON.stringify({name:'dsh-knowledge'}));
   mkdirSync(join(profileDir, 'node_modules', 'dsh-knowledge'), { recursive: true });
   // The generator adds a `link:` dependency to this manifest; giving it one keeps it on the normal branch.
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({

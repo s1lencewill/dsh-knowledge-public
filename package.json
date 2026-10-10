@@ -1,5 +1,5 @@
 {
-  "name": "dsh-knowledge",
+  "name": "@s1lencewill/dsh-knowledge",
   "version": "0.1.0-alpha.4",
   "description": "DSH knowledge-base plugin backed by a managed Sirchmunk service",
   "type": "module",
@@ -41,7 +41,10 @@
     "docs/ALPHA-READINESS.md",
     "SECURITY.md",
     "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "NOTICE",
+    "docs/RELEASE-VALIDATION.md"
   ],
   "dsh": {
     "bundle": {
@@ -84,7 +87,7 @@
   "engines": {
     "node": ">=24"
   },
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "private": true,
   "keywords": [
     "dsh-plugin",
@@ -94,6 +97,15 @@
     "markdown"
   ],
   "publishConfig": {
+    "access": "public",
     "tag": "alpha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s1lencewill/dsh-knowledge-public.git"
+  },
+  "homepage": "https://github.com/s1lencewill/dsh-knowledge-public#readme",
+  "bugs": {
+    "url": "https://github.com/s1lencewill/dsh-knowledge-public/issues"
   }
 }

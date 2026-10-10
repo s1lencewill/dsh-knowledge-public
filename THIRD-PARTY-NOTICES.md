@@ -5,16 +5,15 @@ texts under `<dist-info>/licenses/`; Node: `package.json`; binaries: their pinne
 `--version`). Read it as evidence, not as legal advice; it is a factual list with the obligations that attach
 to each licence family.
 
-**This project's own licence has not been chosen — see `LICENSE-DRAFT.md` (a draft, deliberately not named
-`LICENSE`). This file does not declare one.**
+**Original project code is Apache-2.0 (author decision 2026-10-10); see LICENSE and NOTICE. Third-party materials retain their own licenses.**
 
 ## What actually ships in this package
 
-Nothing third-party is redistributed by the package except the pinned Python *lock file* (a list of names and
-versions, not code). Specifically:
+The package excludes runtime binaries and dependency code. It includes a source modification of rga, its upstream AGPL license and attribution; these are third-party-governed materials, not Apache-2.0 code. The lock file records dependency versions but is not dependency code.
 
 | Group | Redistributed here? | Evidence |
 |---|---|---|
+| rga source patch and upstream license | yes in the public candidate; AGPL-3.0-or-later | `tools/rga/cache-path-fallback.patch`, `tools/rga/LICENSE.md`, `tools/rga/SOURCE.json` |
 | the plugin's own built JS | yes (it is the project's code) | `lib/index.js`, `lib/browser.js` |
 | `@deepseek-ai/dsh-tools`, `@deepseek-ai/dsh-llm` (MIT) | **no** — resolved from the installed DSH host | `package.json` peerDependencies; `lib/index.js` imports |
 | `react` | **no** — supplied by the DSH web shell's module table | `lib/browser.js` `require("react")` |
@@ -27,7 +26,7 @@ This boundary excludes runtime binaries; it does not settle source patch licensi
 
 | Component | Version | Licence | Why it matters |
 |---|---|---|---|
-| **rga** (ripgrep-all), **modified** | 0.10.9 + `tools/rga/cache-path-fallback.patch` | **AGPL-3.0-or-later** | the pinned `rga.exe` is a *modified* version, so AGPL §5 (mark modified, date) and §6 (convey Corresponding Source with the object code) attach to anything that conveys it. Today it lives only in the user's own runtime directory, which the package does not build or ship. AGPL §13 (network use) is not triggered by the current design, because `rga` is invoked as a local CLI subprocess, not exposed behind the service |
+| **rga** (ripgrep-all), **modified** | 0.10.9 + `tools/rga/cache-path-fallback.patch` | **AGPL-3.0-or-later** | the pinned `rga.exe` is a *modified* version, so AGPL §5 (mark modified, date) and §6 (convey Corresponding Source with the object code) attach to anything that conveys it. Today it lives only in the user's own runtime directory, which the package does not build or ship. the local subprocess architecture alone is not a blanket conclusion about AGPL network-use obligations; any hosted or redistributed deployment requires a separate review |
 | **igraph** | 1.0.0 | **GPL v2** | real code in the staged runtime. GPL permits redistribution under conditions: licence text, notices retained, Corresponding Source conveyed |
 | **leidenalg** | 0.12.0 | **GPL-3.0-or-later** | same, and it combines with `igraph` under GPLv3 |
 

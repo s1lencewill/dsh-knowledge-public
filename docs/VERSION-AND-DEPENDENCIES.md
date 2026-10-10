@@ -2,8 +2,7 @@
 
 **Version:** `0.1.0-alpha.3` — *Windows personal knowledge-base Q&A trial, based on Sirchmunk, no embedding-model
 branch, verifiable provenance.* A trial build for authorised private trial only: not a release, not published,
-and not licensed for redistribution yet (see `LICENSE-DRAFT.md`, a draft that is deliberately not named
-`LICENSE`).
+with public-release gates still pending. Original code is Apache-2.0 (LICENSE and NOTICE); third-party components retain their own terms.
 
 ## What is in the package
 
@@ -20,7 +19,7 @@ and not licensed for redistribution yet (see `LICENSE-DRAFT.md`, a draft that is
 | `tools/rga/` | the AGPL patch applied to rga, and its build notes | for the runtime step |
 | `samples/` | the self-made synthetic sample library | yes (default library) |
 | `docs/QUICKSTART.md`, `docs/LIMITATIONS.md`, `docs/RUNTIME-BUILD.md`, this file | user documentation | yes |
-| `THIRD-PARTY-NOTICES.md`, `LICENSE-DRAFT.md`, `VERSION` | licence inventory, an undecided draft licence, and the contents note | yes |
+| `THIRD-PARTY-NOTICES.md`, `LICENSE`, `NOTICE`, `VERSION` | licence inventory, original-code license, attribution, and the contents note | yes |
 
 **Not in the package, on purpose:** the container runtime (it carries an AGPL-licensed modified `rga.exe` and
 the GPL packages `igraph` and `leidenalg` — see `THIRD-PARTY-NOTICES.md`), any credential, any session log,

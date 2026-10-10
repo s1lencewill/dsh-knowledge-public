@@ -107,7 +107,8 @@ export function makeManifest(members, provenance) {
   return {
     schemaVersion: 1, name: pkg.name, version: pkg.version, channel: 'private-candidate',
     provenance, hostPeers: pkg.peerDependencies, node: pkg.engines.node, python: '3.13',
-    runtimeBundled: false, licenceStatus: 'owner-decision-pending',
+    runtimeBundled: false, licenceStatus: pkg.license === 'Apache-2.0' ? 'original-code-Apache-2.0' : 'owner-decision-pending',
+    originalCodeLicense: pkg.license || 'UNLICENSED', thirdPartyLicenses: 'retained',
     pythonLockSHA256: sha256(members.get('engine/requirements-win-py313.lock')),
     files: Object.fromEntries([...members].filter(([name]) => name !== MANIFEST_NAME).sort(([a], [b]) => a.localeCompare(b, 'en')).map(([path, bytes]) =>
       [path, { bytes: bytes.length, sha256: sha256(bytes) }])),

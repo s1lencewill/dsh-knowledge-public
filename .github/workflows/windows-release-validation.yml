@@ -1,0 +1,104 @@
+name: Manual clean Windows release validation
+on:
+  workflow_dispatch:
+    inputs:
+      previous_ref:
+        description: Full 40-character SHA of the prior allowlisted candidate in this repository
+        required: true
+        type: string
+      candidate_sha256:
+        description: SHA256 of the reviewed final npm archive; mismatch rejects the run
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  cold-build-install:
+    runs-on: windows-2025
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      PYTHONDONTWRITEBYTECODE: '1'
+      PREVIOUS_REF: ${{ inputs.previous_ref }}
+      EXPECTED_CANDIDATE_SHA: ${{ inputs.candidate_sha256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          activate-environment: release-base
+          python-version: '3.13'
+          auto-activate-base: false
+          miniconda-version: latest
+      - name: Create a fresh project environment (no dependency caches)
+        run: |
+          if ($env:PREVIOUS_REF -notmatch '^[0-9a-f]{40}$' -or $env:EXPECTED_CANDIDATE_SHA -notmatch '^[0-9a-f]{64}$') { throw 'Invalid immutable input' }
+          if (Test-Path .venv) { throw 'Existing Python environment is forbidden' }
+          conda run -n release-base python -m venv .venv
+          if ($LASTEXITCODE) { throw 'Fresh environment failed' }
+          .venv\Scripts\python.exe -m pip install --no-cache-dir -r engine\requirements-win-py313.lock
+          if ($LASTEXITCODE) { throw 'Dependency lock could not be installed' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE) { throw 'Node lock could not be installed' }
+          npm run build
+          if ($LASTEXITCODE) { throw 'Build failed' }
+      - name: Build tool binaries from pinned upstream source and stage runtime
+        run: |
+          .venv\Scripts\python.exe scripts\build-clean-tools.py --out .local/ci/results/tools.json
+          if ($LASTEXITCODE) { throw 'Cold tool build failed' }
+          $env:DSH_KNOWLEDGE_RG = Join-Path $PWD '.local/tools/rg.exe'
+          $env:DSH_KNOWLEDGE_RGA = Join-Path $PWD '.local/tools/rga-patched/rga.exe'
+          .venv\Scripts\python.exe scripts\stage-appcontainer-runtime.py
+          if ($LASTEXITCODE) { throw 'Fresh runtime staging failed' }
+      - name: Regressions with zero skipped Python release checks
+        run: |
+          .venv\Scripts\python.exe scripts\setup-fixtures.py
+          .venv\Scripts\python.exe scripts\verify-python-skips.py --release --out .local/ci/results/python.json
+          if ($LASTEXITCODE) { throw 'Python failure or release-required skip' }
+          $tests = @(Get-ChildItem tests/*.test.mjs | ForEach-Object FullName)
+          node --test @tests
+          if ($LASTEXITCODE) { throw 'Node regression failed' }
+      - name: Build and audit the exact candidate plus a prior source candidate
+        run: |
+          node scripts/package-release.mjs pack --out .local/ci/candidate
+          if ($LASTEXITCODE) { throw 'Candidate pack failed' }
+          $archive = @(Get-ChildItem .local/ci/candidate/*.tgz)
+          if ($archive.Count -ne 1 -or (Get-FileHash $archive[0] -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:EXPECTED_CANDIDATE_SHA) { throw 'Final candidate bytes differ from reviewed package' }
+          git worktree add --detach .local/ci/previous-source $env:PREVIOUS_REF
+          if ($LASTEXITCODE) { throw 'Prior source revision unavailable' }
+          Push-Location .local/ci/previous-source
+          try {
+            npm ci --ignore-scripts
+            if ($LASTEXITCODE) { throw 'Prior lock failed' }
+            npm run build
+            if ($LASTEXITCODE) { throw 'Prior build failed' }
+            node scripts/package-release.mjs pack --out ../previous-package
+            if ($LASTEXITCODE) { throw 'Prior pack failed' }
+          } finally { Pop-Location }
+      - name: Actual package install, isolated health, reads, upgrade and rollback
+        run: |
+          $current = @(Get-ChildItem .local/ci/candidate/*.tgz)[0].FullName
+          $previous = @(Get-ChildItem .local/ci/previous-package/*.tgz)[0].FullName
+          node scripts/accept-release.mjs --archive $current --previous-archive $previous --work .local/ci/install-acceptance --python .venv/Scripts/python.exe --runtime-from .local/appcontainer-runtime --tools-from .local/tools
+          if ($LASTEXITCODE) { throw 'Actual package acceptance failed' }
+          node scripts/verify-install.mjs --target '.local/ci/install-acceptance/instance one 试用'
+          if ($LASTEXITCODE) { throw 'Installed payload or tool registration differs' }
+      - name: Preserve only synthetic acceptance records (never runtime binaries or instance data)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: clean-windows-release-validation
+          path: |
+            .local/ci/results/*.json
+            .local/ci/candidate/audit.json
+            .local/ci/install-acceptance/report.json
+          if-no-files-found: warn

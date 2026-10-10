@@ -1,14 +1,13 @@
 # Release gates
 
-Preparation version: 0.1.0-alpha.4. No public distribution authorized by this file.
+Version: 0.1.0-alpha.4. Original-code license: Apache-2.0, author confirmed 2026-10-10.
+Third-party materials retain their own terms. The npm private:true guard remains enabled.
 
-- Source export: allowlisted; no private Git history copied. Exact input/output SHA256 is in SOURCE-EXPORT.json.
-- License: pending author confirmation; temporary UNLICENSED/private metadata.
-- Clean JavaScript dependency install/build: measured by this round, not assumed.
-- Clean Python dependency environment/runtime: pending; legacy tool scripts use machine-specific build prerequisites.
-- Fresh Windows / other machine: pending.
-- Marketplace front/back update consistency: pending.
-- Synthetic local package install/upgrade/read/rollback: this round report, when completed.
-- Real answer quality and DEEP historical failure: not resolved by packaging.
+- Public repository proposal: s1lencewill/dsh-knowledge-public; existing private history remains private.
+- npm package identity: @s1lencewill/dsh-knowledge; account name supplied by author, login/publish rights not verified.
+- Clean Node checkout install/build: locally demonstrated.
+- Clean Python/runtime and clean Windows installation: NOT verified; existing dependencies cannot substitute.
+- Python skipped tests: see docs/RELEASE-VALIDATION.md; all skipped security/engine checks are release-required.
+- Marketplace frontend/backend/runtime updates: NOT verified; installed-artifact hashes do not prove market update synchronization.
 
-Do not remove private:true, publish alpha, create a public repository or submit marketplace metadata until required gates are documented and the exact final artifact is reviewed. The old frozen tag is unrelated to this preparation and must not be moved.
+Do not publish until the exact final artifact and all required release gates have passed.

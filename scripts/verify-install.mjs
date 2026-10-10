@@ -220,7 +220,8 @@ check('cordis.patch.yml still carries the plugin row', () => {
   const patch = join(app, 'cordis.patch.yml');
   if (!existsSync(patch)) return { state: 'fail', detail: 'cordis.patch.yml is missing' };
   const text = readFileSync(patch, 'utf8');
-  return /name:\s*dsh-knowledge/.test(text) ? true : { state: 'fail', detail: 'no dsh-knowledge row' };
+  const name = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8')).name;
+  return text.split('\n').some(line => line.trim() === `name: ${name}` || line.trim() === `name: "${name}"`) ? true : { state: 'fail', detail: 'no matching package row' };
 });
 check('the installed client bundle declares one keyed slot per tool', () => {
   const text = readFileSync(bundle, 'utf8');

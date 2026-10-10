@@ -89,5 +89,5 @@ logon/autostart only if explicitly enabled for that disposable instance. No test
 - Explicit support limits and private corpus/provider authorization for any later real-model window.
 
 Until these pass, the kit says **blocked-candidate**, not Beta accepted. Public release additionally needs an
-owner-selected licence, resolved third-party/binary provenance and separate publication authorization.
+the confirmed Apache-2.0 original-code license, resolved third-party/binary provenance and completed publication gates.
 Frozen historical tags are never moved to represent this candidate.

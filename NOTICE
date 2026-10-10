@@ -1,0 +1,12 @@
+DSH Knowledge
+Copyright 2026 DSH Knowledge contributors
+
+Original project code and documentation are licensed under Apache-2.0.
+See LICENSE for the full terms. Third-party components retain their own terms.
+
+The rga source patch is a modification of ripgrep-all and remains governed by
+AGPL-3.0-or-later. The public candidate includes tools/rga/LICENSE.md and
+SOURCE.json; this notice does not relicense that material as Apache-2.0.
+Runtime executables and Python dependency code are not included in this package.
+See THIRD-PARTY-NOTICES.md for the separate source/package/runtime inventory.
+DSH, DeepSeek, and Sirchmunk names identify dependencies, not endorsements.
