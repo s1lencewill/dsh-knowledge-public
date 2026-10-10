@@ -122,7 +122,7 @@ if (serviceOnly) {
   say('Point a host at it with a profile patch row:');
   say('  - insert:');
   say('      - id: knowledge');
-  say('        name: dsh-knowledge');
+  say('        name: '+JSON.parse(readFileSync(join(paths.app,'package.json'),'utf8')).name);
   say('        config:');
   say(`          url: http://127.0.0.1:${config.servicePort}`);
   say(`          tokenFile: ${paths.token}`);

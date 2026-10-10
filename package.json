@@ -83,7 +83,9 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2"
   },
   "engines": {
     "node": ">=24"

@@ -547,7 +547,7 @@ window.__ModuleLoader__.load({
       },
       KNOWLEDGE_BUILD_MISMATCH: {
     category: '知识库组件版本不一致',
-    reason: '页面、插件、后端或隔离运行时未加载同一构建，本次业务请求未发出。',
+    reason: '页面、插件、后端或隔离运行时未加载同一构建，本次知识操作已被拒绝。',
     action: '完成整套更新并重启后端与宿主，刷新页面后再试；已有任务仍可取消。',
   },
       KNOWLEDGE_SERVICE_UNAVAILABLE: {

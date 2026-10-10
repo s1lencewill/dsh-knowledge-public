@@ -168,7 +168,7 @@ export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint:
             }
             if (value && Object.keys(value).length===1 && ['start','stop','status'].includes(value.action)) {
               const before=await health();
-              let result=value.action==='start' && before.service==='ready' ? {code:'ALREADY_READY',operation:'idle'} : value.action==='start' && ['unauthorized','not-isolated','unhealthy'].includes(before.service) ? {code:'ACTION_FAILED',operation:'failed'} : await control.act(value.action);
+              let result=value.action==='start' && before.service==='ready' ? {code:'ALREADY_READY',operation:'idle'} : value.action==='start' && ['unauthorized','not-isolated','unhealthy','build-mismatch'].includes(before.service) ? {code:'ACTION_FAILED',operation:'failed'} : await control.act(value.action);
               const checked=await health();
               if(value.action==='start' && result.code==='ACTION_COMPLETED' && checked.service!=='ready')result={code:'ACTION_FAILED',operation:'failed'};
               send(200,{...checked,...result,controlAvailable:control.available,checkedAt:new Date().toISOString()});return;
