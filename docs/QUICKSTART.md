@@ -202,7 +202,7 @@ installation and the data by default (`--remove-data` is the only thing that del
 
 ## 6. Add your own library
 
-There is no import wizard yet — this is the actual current way, with two steps.
+The workbench now supports adding a folder: local preflight, explicit scope/provider consent, build, then select the library. Session selection and workspace defaults are separate; switching affects subsequent calls only. Check updates and confirm differences before changing authorization. Removing registration keeps originals. Windows Server CI does not verify this desktop workflow. The configuration fallback remains available below.
 
 1. **Extract your PDFs to text with the page map.** The extractor is in this repository, not in the instance:
    `scripts/extract-literature.py` writes a text file plus an audit per PDF, and

@@ -24,3 +24,6 @@ Correction: the four local service capacity failures were LIBRARY_CONFIG_UNAVAIL
 After pipe cleanup correction the second and third local full runs did not reproduce the forbidden-options timeout. This is regression evidence, not proof of the unobserved cloud thread ordering. The original failure remains archived.
 
 Final local regression: Python 636 tests, zero failures/errors, two local symlink skips; Node 369/369. Candidate runtime restaged and staging.verify returned True. These are same-machine checks, not a clean Windows release pass.
+
+## 2026-10-11
+Run 38067326479 directly shows pending ConnectNamedPipe and blocked DisconnectNamedPipe. A controlled regression times out against old source and passes against corrected source. close now repeatedly cancels synchronous accept and joins it before disconnect; a pending thread fails within a bound. No security/test gate weakened. Local IPC 8/8; Python 637 with two local symlink skips. Runtime must be restaged. npm account verified, 2FA auth-and-writes; publication requires that flow. Package/VERSION mismatch corrected in alpha.9.

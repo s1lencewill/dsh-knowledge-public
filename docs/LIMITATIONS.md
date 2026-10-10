@@ -29,9 +29,8 @@ not a hedge.
 - **Opening the original file is not implemented.** The button is disabled and says so. The host can only hand
   an existing *directory* to a file manager, and doing that would expose your whole library folder, so this
   build refuses rather than widening access. Open originals yourself.
-- **There is no import wizard and no settings page.** Adding a library means running the extractor and writing
-  a small JSON config — see QUICKSTART §6. The configuration described there is the real current path; no
-  prototype page is presented as a feature.
+- **Desktop onboarding is separate from Server CI.** Folder preflight, consent, publication, selection and workspace defaults are implemented; desktop interaction is not certified by the server installation gate. See QUICKSTART §6.
+
 - **No embedding-model branch runs.** The container runtime is built so that torch, transformers,
   sentence-transformers, modelscope and the embedding path are pruned. Knowledge reuse, its evolution and
   embeddings are declared off, and the engine refuses to run if the declaration and the image disagree.
@@ -339,3 +338,5 @@ not a hedge.
 - Anything about licenses: this repository has **no chosen licence yet**, and the files here are drafts for
   the author to decide on (see `LICENSE-DRAFT.md` and `THIRD-PARTY-NOTICES.md`). The package is for authorised
   private trial use only; nothing here grants a right to redistribute it.
+
+Developer Alpha: Windows only; Sirchmunk primary engine; no embedding-model branch. Retrieval coverage gaps and historical DEEP failures remain unresolved by installation tests. Runtime binaries are built locally, not bundled.
