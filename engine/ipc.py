@@ -88,6 +88,9 @@ kernel32.WriteFile.argtypes = [w.HANDLE, c.c_void_p, w.DWORD, c.POINTER(w.DWORD)
 kernel32.PeekNamedPipe.argtypes = [w.HANDLE, c.c_void_p, w.DWORD, c.c_void_p, c.POINTER(w.DWORD), c.c_void_p]
 kernel32.CancelIoEx.argtypes = [w.HANDLE, c.c_void_p]
 kernel32.CloseHandle.argtypes = [w.HANDLE]
+kernel32.OpenThread.argtypes = [w.DWORD, w.BOOL, w.DWORD]
+kernel32.OpenThread.restype = w.HANDLE
+kernel32.CancelSynchronousIo.argtypes = [w.HANDLE]
 
 
 class PipeError(RuntimeError):
@@ -282,6 +285,8 @@ class PipeServer:
         self.finished = threading.Event()
         self.error = None
         self._thread = None
+        self._closing = threading.Event()
+        self._close_lock = threading.Lock()
 
     @property
     def path(self):
@@ -301,6 +306,8 @@ class PipeServer:
 
     def _accept(self):
         try:
+            if self._closing.is_set():
+                return
             if not kernel32.ConnectNamedPipe(self.handle, None):
                 error = c.get_last_error()
                 if error != ERROR_PIPE_CONNECTED:
@@ -325,20 +332,36 @@ class PipeServer:
         write_message(self.handle, payload, self.max_message)
 
     def close(self):
-        handle, self.handle = self.handle, None
-        if handle and handle != INVALID_HANDLE_VALUE:
-            # A pending ConnectNamedPipe in the accept thread would otherwise block teardown and
-            # keep the name occupied for the next instance.
-            kernel32.CancelIoEx(handle, None)
-            if self._thread is not None:
-                self._thread.join(timeout=5)
-            try:
+        with self._close_lock:
+            handle = self.handle
+            self._closing.set()
+            if handle and handle != INVALID_HANDLE_VALUE:
+                # CancelIoEx is a request, not a join. Cancellation may precede the
+                # synchronous ConnectNamedPipe submission; repeat until it has returned.
+                kernel32.CancelIoEx(handle, None)
+                thread = self._thread
+                thread_handle = None
+                try:
+                    if thread is not None and thread.is_alive():
+                        thread_handle = kernel32.OpenThread(0x0001, False, thread.native_id)
+                        deadline = time.monotonic() + 5
+                        while thread.is_alive() and time.monotonic() < deadline:
+                            if thread_handle:
+                                kernel32.CancelSynchronousIo(thread_handle)
+                            kernel32.CancelIoEx(handle, None)
+                            thread.join(timeout=0.02)
+                        if thread.is_alive():
+                            # Preserve ownership for retry. Never disconnect or close a
+                            # handle still used by a pending synchronous accept.
+                            raise PipeTimeout("pipe accept did not stop before teardown deadline")
+                finally:
+                    if thread_handle:
+                        kernel32.CloseHandle(thread_handle)
                 kernel32.DisconnectNamedPipe(handle)
-            except OSError:
-                pass
-            kernel32.CloseHandle(handle)
-        if self.holder:
-            self.holder.free()
+                kernel32.CloseHandle(handle)
+                self.handle = None
+            if self.holder:
+                self.holder.free()
 
 
 def connect(path, timeout_ms=5000, max_message=MAX_MESSAGE):

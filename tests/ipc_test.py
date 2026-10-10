@@ -49,6 +49,37 @@ class PipeTests(unittest.TestCase):
         stdout, stderr = process.communicate(timeout=timeout)
         return process.returncode, stdout, stderr
 
+    def test_cancellation_before_connect_submission_cannot_hang_teardown(self):
+        # A subprocess bounds even a regression that blocks inside the native API.
+        code = r"""
+import threading, uuid
+ready = threading.Event(); release = threading.Event(); submitted = threading.Event()
+connect = ipc.kernel32.ConnectNamedPipe; cancel = ipc.kernel32.CancelIoEx
+attempts = [0]
+def delayed_connect(handle, overlapped):
+    ready.set(); assert release.wait(5); submitted.set()
+    return connect(handle, overlapped)
+def cancel_before_submission(handle, overlapped):
+    result = cancel(handle, overlapped)
+    attempts[0] += 1
+    if attempts[0] == 1:
+        release.set(); assert submitted.wait(5); time.sleep(.05)
+    return result
+ipc.kernel32.ConnectNamedPipe = delayed_connect
+ipc.kernel32.CancelIoEx = cancel_before_submission
+server = ipc.PipeServer('synthetic-close-race-' + uuid.uuid4().hex).listen()
+assert ready.wait(5)
+server.close()
+assert server.finished.is_set() and not server._thread.is_alive()
+assert server.handle is None
+server.close()
+print('teardown-completed')
+"""
+        run = subprocess.run([sys.executable, "-c", CHILD_PRELUDE + code],
+                             capture_output=True, text=True, timeout=15)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertIn("teardown-completed", run.stdout)
+
     def test_roundtrip_with_a_real_child_process(self):
         server = self.listen()
         process = self.start_child("print(json.dumps(ipc.roundtrip(sys.argv[1], json.loads(sys.argv[2]))))",
