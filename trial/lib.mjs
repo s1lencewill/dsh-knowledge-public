@@ -29,11 +29,11 @@ export const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** Program files the instance needs. Anything not listed is not copied, and that is the point. */
 export const PROGRAM_FILES = [
   'package.json', 'cordis.patch.yml', 'lib', 'engine', 'ui', 'trial', 'tools', 'samples',
-  'README.md', 'LICENSE', 'NOTICE', 'LICENSE-DRAFT.md', 'THIRD-PARTY-NOTICES.md', 'VERSION', 'RELEASE-MANIFEST.json',
+  'README.md', 'LICENSE', 'NOTICE', 'LICENSE-DRAFT.md', 'THIRD-PARTY-NOTICES.md', 'VERSION', 'RELEASE-MANIFEST.json', 'SECURITY.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
 ];
 /** Documentation the user reads. Kept as a list so `install` can report what it is copying. */
 export const DOC_FILES = ['docs/QUICKSTART.md', 'docs/LIMITATIONS.md', 'docs/VERSION-AND-DEPENDENCIES.md',
-  'docs/BUILD-CONSISTENCY.md', 'docs/RELEASE-VALIDATION.md', 'docs/RUNTIME-BUILD.md', 'docs/PRIVATE-BETA.md'];
+  'docs/BUILD-CONSISTENCY.md', 'docs/PRIVACY.md', 'docs/ALPHA-READINESS.md', 'docs/RELEASE-VALIDATION.md', 'docs/RUNTIME-BUILD.md', 'docs/PRIVATE-BETA.md'];
 /** Directories whose absence means this is not a package at all. */
 export const REQUIRED_APP_PATHS = ['package.json', 'lib/index.js', 'lib/browser.js', 'engine/service.py',
   'ui/source-card.js', 'cordis.patch.yml',
@@ -259,15 +259,18 @@ export function modelBaseUrlRows(value) {
 /** The base URL this installer wrote before it learned to leave the adapter's own default alone. */
 export const LEGACY_MODEL_BASE_URL = 'https://api.deepseek.com';
 
-export function writeProfile(paths, config) {
+export function writeProfile(paths, config, packageSource = paths.app) {
   // The profile is named per instance, not `kn-trial` for everyone: the host's command line carries the
   // profile name and nothing else of the instance, so that name is the marker `stop` verifies. A shared name
   // would let one instance's host look like another's.
   const profileDir = join(paths.profilesDir, config.profileName);
   mkdirSync(profileDir, { recursive: true });
+  const packageName = readJson(join(packageSource, 'package.json'))?.name;
+  if (typeof packageName !== 'string' || !/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(packageName)) throw new Error('INVALID_PACKAGE_NAME');
   const modules = join(profileDir, 'node_modules');
   mkdirSync(modules, { recursive: true });
-  const link = join(modules, 'dsh-knowledge');
+  const link = join(modules, packageName);
+  mkdirSync(dirname(link), { recursive: true });
   if (!existsSync(link)) {
     const made = run('cmd', ['/c', 'mklink', '/J', link, paths.app]);
     if (made.status !== 0) return { ok: false, detail: (made.stderr || made.stdout || '').trim().slice(0, 160) };
@@ -317,25 +320,26 @@ export function writeProfile(paths, config) {
   const pkg = readJson(join(profileDir, 'package.json'));
   if (pkg) {
     pkg.dsh = pkg.dsh || {};
+    if (packageName !== 'dsh-knowledge' && pkg.dependencies) delete pkg.dependencies['dsh-knowledge'];
     pkg.dsh.profile = {
-      bundles: [...new Set([...(pkg.dsh.profile?.bundles ?? ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app']),
-        'dsh-knowledge'])],
+      bundles: [...new Set([...(pkg.dsh.profile?.bundles ?? ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app']).filter(name => name !== 'dsh-knowledge' || packageName === 'dsh-knowledge'),
+        packageName])],
       patchReload: 'live',
     };
     // The bundle has to be resolvable from the profile too: DSH resolves a bundle name from the profile's own
     // `node_modules`, and the junction above is that node_modules entry. Recording it as a `link:` dependency is
     // what keeps a later `dsh plugin install` from pruning the junction as an extraneous package.
-    writeJson(join(profileDir, 'package.json'), addLinkDependency(pkg, 'dsh-knowledge', paths.app));
+    writeJson(join(profileDir, 'package.json'), addLinkDependency(pkg, packageName, paths.app));
   } else {
     // A profile is composed from the bundles its own package.json names, so an instance's fresh profile needs
     // one: without it DSH has no rows to compose and the plugin would never be loaded.
     writeJson(join(profileDir, 'package.json'), {
       name: 'dsh-profile-' + config.profileName,
       private: true,
-      dependencies: { 'dsh-knowledge': linkSpec(paths.app) },
+      dependencies: { [packageName]: linkSpec(paths.app) },
       dsh: {
         profile: {
-          bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', 'dsh-knowledge'],
+          bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', packageName],
           patchReload: 'live',
         },
       },

@@ -10,7 +10,7 @@ function fixture(t,packageName=name){
  const paths={app:join(root,'app'),profilesDir:join(root,'profiles'),token:join(root,'token')};mkdirSync(paths.app);
  writeFileSync(join(paths.app,'package.json'),JSON.stringify({name:packageName}));writeFileSync(paths.token,'synthetic-token');
  const config={profileName:'synthetic',picker:'browse',servicePort:19090,modelProvider:'synthetic',titleModel:'synthetic',modelApiKeyEnv:'SYNTHETIC_KEY'};
- return {paths,config,profile:join(paths.profilesDir,'synthetic')};
+ return {root,paths,config,profile:join(paths.profilesDir,'synthetic')};
 }
 test('scoped package composes its own bundle and resolves from the profile',t=>{
  const {paths,config,profile}=fixture(t);assert.equal(writeProfile(paths,config).ok,true);
@@ -29,4 +29,9 @@ test('reinstallation does not duplicate the scoped bundle',t=>{
 });
 test('a package identity cannot turn into a parent-directory link',t=>{
  const {paths,config}=fixture(t,'../outside');assert.throws(()=>writeProfile(paths,config),/INVALID_PACKAGE_NAME/);
+});
+test('first installation reads the staged identity while the future app path does not exist',t=>{
+ const f=fixture(t);const staged=join(f.root,'app.new');mkdirSync(staged,{recursive:true});writeFileSync(join(staged,'package.json'),JSON.stringify({name}));
+ assert.equal(resolve(f.paths.app,'..'),resolve(f.root));rmSync(f.paths.app,{recursive:true,force:true});const result=writeProfile(f.paths,f.config,staged);assert.equal(result.ok,true);
+ const pkg=JSON.parse(readFileSync(join(f.paths.profilesDir,f.config.profileName,'package.json'),'utf8'));assert.ok(pkg.dsh.profile.bundles.includes(name));
 });

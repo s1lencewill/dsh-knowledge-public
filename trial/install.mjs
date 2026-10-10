@@ -229,7 +229,7 @@ writeJson(paths.config, config);
 ok(`instance config written to ${paths.config}`);
 
 // --- 4. the DSH profile
-const profile = writeProfile(paths, config);
+const profile = writeProfile(paths, config, staging);
 if (profile.ok) ok(`DSH profile created (plugin resolves to ${paths.app}); directory picker: ${config.picker}`);
 else check('DSH profile', () => ({ state: 'fail', detail: profile.detail }));
 
