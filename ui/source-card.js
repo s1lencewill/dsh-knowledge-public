@@ -550,7 +550,7 @@ window.__ModuleLoader__.load({
     reason: '页面、插件、后端或隔离运行时未加载同一构建，本次业务请求未发出。',
     action: '完成整套更新并重启后端与宿主，刷新页面后再试；已有任务仍可取消。',
   },
-  KNOWLEDGE_SERVICE_UNAVAILABLE: {
+      KNOWLEDGE_SERVICE_UNAVAILABLE: {
         category: '知识库服务内部错误',
         reason: '知识库服务返回了服务端错误，这次调用没有结果。',
         action: '查看服务端日志后重试；这不代表库中没有相关资料。',

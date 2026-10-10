@@ -49,6 +49,8 @@ jobs:
           if ($LASTEXITCODE) { throw 'Dependency lock could not be installed' }
           npm ci --ignore-scripts
           if ($LASTEXITCODE) { throw 'Node lock could not be installed' }
+          npm install --global @deepseek-ai/dsh@0.2.0-rc.2 --ignore-scripts
+          if ($LASTEXITCODE) { throw 'Pinned DSH host install failed' }
           npm run build
           if ($LASTEXITCODE) { throw 'Build failed' }
       - name: Build tool binaries from pinned upstream source and stage runtime
