@@ -1,3 +1,4 @@
+import { RUNNING_BUILD, compatibleHealth, type BuildIdentity } from './build.js';
 /** Authenticated, host-only panel bridge. No service credential reaches browser or model. */
 import { readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -108,7 +109,7 @@ function installedTarget(endpoint: () => {url:string;token:string}): string | nu
 
 export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint: () => { url: string; token: string },
                                     control = new PanelController(installedTarget(endpoint)),
-                                    active = new ActiveQueries(), selectedLibrary: (sessionId: string) => string | null = () => null, libraryPanel?: LibraryPanel): void {
+                                    active = new ActiveQueries(), selectedLibrary: (sessionId: string) => string | null = () => null, libraryPanel?: LibraryPanel, build: BuildIdentity | null = RUNNING_BUILD): void {
   let healthFlight: Promise<{ service: string; isolationActive: boolean; serviceQuery: any }> | null = null;
   const health = () => {
     if (healthFlight) return healthFlight;
@@ -121,7 +122,7 @@ export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint:
         else if(response.ok){
           const value=await response.json();
           isolationActive=value.isolation==='required' && value.isolationActive===true;
-          service=isolationActive?'ready':'not-isolated';
+          service=compatibleHealth(value,build)?(isolationActive?'ready':'not-isolated'):'build-mismatch';
           // The service's own view: whether *any* session's query is running, with closed-set facts only
           // (state, mode, elapsed). Naming the state is the point - a healthy 200 must not read as "a query
           // can be admitted right now" when it cannot.
@@ -158,6 +159,7 @@ export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint:
           try {
             let body = ''; for await (const chunk of req) { body += chunk; if (Buffer.byteLength(body) > 4096) { send(413, { code: 'BODY_TOO_LARGE' }); return; } }
             const value = JSON.parse(body);
+            if(build && (build.valid===false || req.headers['x-knowledge-client-build']!==build.id) && !(value?.cancelQuery===true) && value?.action!=='stop' && value?.action!=='status'){send(409,{code:'BUILD_MISMATCH'});return;}
             if(value && Object.hasOwn(value,'libraryAction')) {
               if(!libraryPanel){send(503,{code:'LIBRARY_CONTROL_UNAVAILABLE'});return;}
               try{send(200,await libraryPanel.act(sessionId,value));}
@@ -202,6 +204,7 @@ export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint:
           } catch { send(400, { code: 'SETTING_NOT_SAVED' }); return; }
           send(200, { maxCalls: settings.get(sessionId), persisted: settings.persisted }); return;
         }
+        if(build && (build.valid===false || req.headers['x-knowledge-client-build']!==build.id)){send(200,{service:'build-mismatch',code:'BUILD_MISMATCH',controlAvailable:control.available,query:active.status(sessionId),queries:active.list(sessionId),maxCalls:settings.get(sessionId),autoOpenMode:'manual'});return;}
         send(200,{...await projection(sessionId),operation:control.state,controlAvailable:control.available,checkedAt:new Date().toISOString(),autoOpenMode:settings.autoOpenMode,maxCalls:settings.get(sessionId),persisted:settings.persisted,settingsReadable:settings.readable,commands:installedCommands()});
       },
     }));

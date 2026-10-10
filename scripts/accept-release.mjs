@@ -47,6 +47,9 @@ try{
   const config=JSON.parse(readFileSync(join(target,'data/config.json'),'utf8')),token=readFileSync(join(target,'data/service-token.txt'),'utf8').trim();
   const endpoint='http://127.0.0.1:'+config.servicePort,headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
   const health=await(await fetch(endpoint+'/health',{headers})).json();check('health-isolation-required-active',health.isolation==='required'&&health.isolationActive===true);
+  const build=JSON.parse(readFileSync(join(app(),'lib/build-identity.json'),'utf8'));
+  if(health.build?.id!==build.id || health.build?.valid!==true || health.runtimeBuild?.status!=='verified')throw Error('BUILD_OR_RUNTIME_MISMATCH');
+  headers['X-Knowledge-Build']=build.id;
   const workspace=join(target,'data');
   const listResponse=await fetch(endpoint+'/catalogue',{method:'POST',headers,body:JSON.stringify({workspace,libraryId:'samples',limit:50})});const list=await listResponse.json();
   const docs=list.documents||list.entries||[];check('local-catalogue',listResponse.ok&&docs.length>0);

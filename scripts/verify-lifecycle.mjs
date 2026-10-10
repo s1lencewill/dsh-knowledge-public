@@ -581,7 +581,6 @@ async function checkTaskManagement() {
 
 /** 8. The daily instance, as a *reader*: healthy, isolated, and listing its libraries. */
 async function checkDaily() {
-  if (!flags['daily-target']) return record('8. the daily instance is healthy', 'unverified', 'no daily target explicitly supplied');
   const daily = resolve(flags['daily-target']);
   const dailyPaths = instancePaths(daily);
   if (!existsSync(dailyPaths.config)) return record('8. the daily instance is healthy', 'unverified', `no instance at ${daily}`);

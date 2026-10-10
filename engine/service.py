@@ -11,7 +11,7 @@ import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -32,6 +32,7 @@ import real_data
 import source_card
 import onboarding
 import staging
+import release_identity
 
 TOKEN = os.environ.get("DSH_KNOWLEDGE_TOKEN", "")
 CONFIG = os.environ.get("DSH_KNOWLEDGE_CONFIG", ".local/libraries.json")
@@ -113,6 +114,7 @@ READ_SESSIONS = reader.Sessions(read_max_per_session(), read_max_chars())
 ISOLATION_MODES = ("required", "off")
 ISOLATION_ENV = "DSH_KNOWLEDGE_ISOLATION"
 PROJECT = Path(__file__).resolve().parents[1]
+RUNNING_BUILD = release_identity.capture(PROJECT)
 RUNTIME = Path(os.environ.get("DSH_KNOWLEDGE_RUNTIME") or (PROJECT / ".local/appcontainer-runtime")).resolve()
 PATCHED_RGA = PROJECT / ".local/tools/rga-patched/rga.exe"
 ISOLATION_STATE = {}
@@ -180,9 +182,16 @@ def sweep_stale_jobs(root=None):
     return removed
 
 
-async def authenticated(authorization: str = Header(default="")):
+async def authenticated(request: Request, authorization: str = Header(default="")):
     if len(TOKEN) < 24 or not hmac.compare_digest(authorization, "Bearer " + TOKEN):
         raise HTTPException(401, "Unauthorized")
+    # Old clients may still poll and cancel an admitted job. Only new business operations are gated.
+    if RUNNING_BUILD is not None and (request.url.path in ("/libraries", "/reads", "/documents", "/catalogue", "/library-admin") or (request.url.path == "/queries" and request.method == "POST")):
+        if not RUNNING_BUILD.get("valid") or request.headers.get("X-Knowledge-Build") != RUNNING_BUILD.get("id"):
+            raise HTTPException(409, "BUILD_MISMATCH")
+        status = release_identity.runtime_status(RUNNING_BUILD, RUNTIME, PROJECT, bool(ISOLATION_STATE.get("profile")))
+        if status["status"] != "verified":
+            raise HTTPException(409, "RUNTIME_BUILD_MISMATCH")
 
 
 def stage_isolation_payload():
@@ -445,7 +454,7 @@ async def health():
     # out whether the cap was picked up is to make a request and see whether it was refused.
     used, limit, path = model_proxy.quota_state()
     running = busy_job()
-    return {"protocol": 1, "sirchmunk": version("sirchmunk"), "experimental": True, "fixtureOnly": True,
+    return {"build": RUNNING_BUILD, "runtimeBuild": release_identity.runtime_status(RUNNING_BUILD, RUNTIME, PROJECT, bool(ISOLATION_STATE.get("profile"))), "protocol": 1, "sirchmunk": version("sirchmunk"), "experimental": True, "fixtureOnly": True,
             "isolation": isolation_mode(), "isolationActive": bool(ISOLATION_STATE.get("profile")),
             # "The service is healthy" and "a query can be admitted right now" are different facts, and
             # conflating them is how a healthy 200 read as "search will work" while every submission was

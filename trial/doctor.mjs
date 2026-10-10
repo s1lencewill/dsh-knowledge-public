@@ -5,6 +5,7 @@
  * config validity, port availability. Nothing in this file contacts a provider or the knowledge service, so
  * "the doctor passes" cannot be mistaken for "the model works".
  */
+import { compatibleInstalledHealth } from './release-build.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { probePlugin } from './host-dependencies.mjs';
@@ -174,15 +175,14 @@ record(check('plugin composed into the profile', () => {
   const patch = existsSync(patchPath) ? readFileSync(patchPath, 'utf8') : '';
   if (!manifest) return { state: 'fail', detail: 'the profile has no package.json; re-run install' };
   const bundles = manifest.dsh?.profile?.bundles ?? [];
-  const packageName = readJson(join(paths.app, 'package.json')).name;
-  if (!bundles.includes(packageName)) {
+  if (!bundles.includes('dsh-knowledge')) {
     return { state: 'fail', detail: 'dsh.profile.bundles does not name dsh-knowledge; the plugin is not composed '
       + 'at all (re-run install)' };
   }
-  if (!existsSync(join(profileDir, 'node_modules', packageName))) {
+  if (!existsSync(join(profileDir, 'node_modules', 'dsh-knowledge'))) {
     return { state: 'fail', detail: 'the bundle is not resolvable from the profile node_modules; re-run install' };
   }
-  const dependency = manifest.dependencies?.[packageName] ?? '';
+  const dependency = manifest.dependencies?.['dsh-knowledge'] ?? '';
   if (!/^link:/.test(dependency)) {
     return { state: 'fail', detail: 'the profile dependency is not a link: into this instance; re-run install' };
   }
@@ -232,7 +232,8 @@ if (!flags['no-live']) {
   const liveToken = existsSync(paths.token) ? readFileSync(paths.token, 'utf8').trim() : '';
   const health = await httpJson(`http://127.0.0.1:${config.servicePort}/health`,
     { timeoutMs: 2500, headers: liveToken ? { authorization: `Bearer ${liveToken}` } : {} });
-  if (health.status === 200) ok(`service answers /health (isolationActive=${health.body?.isolationActive})`);
+  if (health.status===200 && !compatibleInstalledHealth(paths.app,health.body)){states.push('fail');say('  FAIL  running backend or runtime differs from the installed build; restart after a complete update');}
+  else if (health.status === 200) ok(`service answers /health (isolationActive=${health.body?.isolationActive})`);
   else if (health.status === 0) unverified('service is not running, so its health was not checked');
   else if (health.status === 401) { states.push('fail'); say('  FAIL  service refused this instance\'s own '
     + `token (HTTP 401); re-run install to regenerate it, or stop whatever else holds port ${config.servicePort}`); }

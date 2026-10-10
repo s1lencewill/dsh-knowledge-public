@@ -1,7 +1,7 @@
 /**
  * dsh-knowledge browser half: the source card for the knowledge tools.
  *
- * This file is the tracked SOURCE of the served artifact; `scripts/build-client.mjs` copies it to
+ * This file is the tracked SOURCE of the served artifact; `scripts/build-client.mjs` injects the frozen build identity into
  * `lib/browser.js`, which `exports["./client"].default` points at. It is hand-authored in the exact
  * container format the shell's module loader expects
  * (`window.__ModuleLoader__.load({id, factory})`, lazy-CJS), so no bundler and no new dependency is
@@ -25,6 +25,12 @@
 window.__ModuleLoader__.load({
   id: "dsh-knowledge",
   factory: (require) => {
+    const clientBuild = '__KNOWLEDGE_CLIENT_BUILD_ID__';
+    const fetch = (input, options = {}) => {
+      const headers = new Headers(options.headers);
+      if (/^[a-f0-9]{64}$/.test(clientBuild)) headers.set('X-Knowledge-Client-Build', clientBuild);
+      return globalThis.fetch(input, {...options, headers});
+    };
     var module = { exports: {} };
     var exports = module.exports;
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
@@ -190,7 +196,7 @@ window.__ModuleLoader__.load({
       const off=runtime.sidebar.mounted.subscribe(mount);mount();return()=>{disposed=true;generation++;off();release();runtime.reload=null;};
     }
     const SERVICE_LABELS = { ready: '服务已启动 · 隔离已启用', unreachable: '服务不可达（可能未启动或已关闭）',
-      unauthorized: '服务可达，但认证失败', 'not-isolated': '服务可达，但隔离未就绪', unhealthy: '服务健康检查失败', unknown: '服务状态未知' };
+      unauthorized: '服务可达，但认证失败', 'not-isolated': '服务可达，但隔离未就绪', 'build-mismatch': '组件版本不一致，请完成更新并刷新页面', unhealthy: '服务健康检查失败', unknown: '服务状态未知' };
     const LIBRARY_ERRORS={FOLDER_OVERLAPS_STORAGE:'所选文件夹包含插件数据目录，请选择独立的资料子文件夹。',LIBRARY_CAPACITY_EXCEEDED:'文件数超过建库上限；未提高限制或发布部分库。',PREVIEW_LIMIT:'预检数量已达上限，请关闭其他预检或稍后重试。',CONFIG_INVALID:'库配置无法读取，请检查配置后再试。',NAME_INVALID:'名称无效，请使用不超过 120 字的名称。',INVALID_LIBRARY_ACTION:'操作参数无效，请重新打开向导。',LOCAL_BUILD_FAILED:'本地构建未完成，旧配置未被替换。',LIBRARY_ACTION_FAILED:'操作未完成；请检查预检结果及服务状态。',FOLDER_INVALID:'请选择有效的文件夹。',FOLDER_OUTSIDE_WORKSPACE:'文件夹须在当前工作区内。',
       LINK_NOT_ALLOWED:'不支持链接或联接目录，请选原目录。',WORKSPACE_TOO_BROAD:'请先打开具体工作区，不使用整盘作为范围。',
       CONFIG_CHANGED:'配置已变化，请重新预检。',SOURCE_CHANGED:'原件已变化，请重新预检。',PREFLIGHT_FAILED:'预检未通过，请处理异常文件后再试。',
@@ -198,7 +204,7 @@ window.__ModuleLoader__.load({
       PREVIEW_EXPIRED:'预检已过期，请重新预检。',PREVIEW_FOREIGN:'此预检不属于当前会话。',CONSENT_REQUIRED:'请先确认目录与数据使用授权。',
       PUBLISH_BUSY:'另一个发布操作尚未完成，请稍后检查列表。',LIBRARY_NOT_VISIBLE:'此库在当前工作区不可用，未自动选择其他库。',
       SELECTION_NOT_SAVED:'选择未保存，旧选择保持不变。',SELECTION_FILE_UNREADABLE:'选择配置无法读取，未覆盖原文件。',
-      SERVICE_UNAVAILABLE:'知识库服务不可用，请检查服务状态。',SESSION_UNAVAILABLE:'会话尚未就绪，请稍后重试。'};
+      BUILD_MISMATCH:'组件版本不一致，请完成更新并刷新页面。',SERVICE_UNAVAILABLE:'知识库服务不可用，请检查服务状态。',SESSION_UNAVAILABLE:'会话尚未就绪，请稍后重试。'};
     function LibraryControls(props) {
       const [wizard,setWizard]=React.useState(false),[folder,setFolder]=React.useState(''),[name,setName]=React.useState(''),
         [preview,setPreview]=React.useState(null),[consent,setConsent]=React.useState(false),[working,setWorking]=React.useState(false),
@@ -539,7 +545,12 @@ window.__ModuleLoader__.load({
         reason: '知识库服务拒绝了随请求发送的凭据。',
         action: '核对部署侧配置的访问令牌与服务端配置是否一致，然后重启宿主。',
       },
-      KNOWLEDGE_SERVICE_UNAVAILABLE: {
+      KNOWLEDGE_BUILD_MISMATCH: {
+    category: '知识库组件版本不一致',
+    reason: '页面、插件、后端或隔离运行时未加载同一构建，本次业务请求未发出。',
+    action: '完成整套更新并重启后端与宿主，刷新页面后再试；已有任务仍可取消。',
+  },
+  KNOWLEDGE_SERVICE_UNAVAILABLE: {
         category: '知识库服务内部错误',
         reason: '知识库服务返回了服务端错误，这次调用没有结果。',
         action: '查看服务端日志后重试；这不代表库中没有相关资料。',
@@ -644,7 +655,7 @@ window.__ModuleLoader__.load({
      * `tests/failure-cards.test.mjs` asserts both halves declare the same members.
      */
     const FAILURE_LAYERS = ['plugin', 'transport', 'service', 'host'];
-    const SERVICE_CODES = ['SOURCE_VERSION_CHANGED', 'READ_SOURCE_VERSION_MISMATCH', 'READ_HANDLE_INVALID',
+    const SERVICE_CODES = ['BUILD_MISMATCH', 'RUNTIME_BUILD_MISMATCH', 'SOURCE_VERSION_CHANGED', 'READ_SOURCE_VERSION_MISMATCH', 'READ_HANDLE_INVALID',
       'READ_HANDLE_FOREIGN', 'READ_FILE_UNAVAILABLE', 'READ_REQUEST_INVALID', 'READ_RANGE_INVALID',
       'READ_LIMIT_EXCEEDED', 'RESULT_CAPACITY', 'CATALOG_UNAVAILABLE', 'CATALOG_UNREADABLE',
       'CATALOGUE_REQUEST_INVALID', 'CATALOGUE_CHANGED', 'DOCUMENT_NOT_READABLE', 'DOCUMENT_CHANGED',

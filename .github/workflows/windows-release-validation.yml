@@ -59,6 +59,12 @@ jobs:
           $env:DSH_KNOWLEDGE_RGA = Join-Path $PWD '.local/tools/rga-patched/rga.exe'
           .venv\Scripts\python.exe scripts\stage-appcontainer-runtime.py
           if ($LASTEXITCODE) { throw 'Fresh runtime staging failed' }
+      - name: Verify symbolic-link security checks on the disposable runner
+        run: |
+          New-Item -ItemType Directory -Force .local/ci/results | Out-Null
+          New-Item -ItemType Directory -Force .local/ci/symlink-probe | Out-Null
+          .venv\Scripts\python.exe -c "import os; from pathlib import Path; p=Path('.local/ci/symlink-probe'); (p/'target').write_text('synthetic'); os.symlink('target',p/'link'); assert (p/'link').is_symlink(); assert (p/'link').read_text()=='synthetic'; (p/'link').unlink()"
+          if ($LASTEXITCODE) { throw 'Symlinks are unavailable; release checks must not skip' }
       - name: Regressions with zero skipped Python release checks
         run: |
           .venv\Scripts\python.exe scripts\setup-fixtures.py
@@ -84,6 +90,12 @@ jobs:
             node scripts/package-release.mjs pack --out ../previous-package
             if ($LASTEXITCODE) { throw 'Prior pack failed' }
           } finally { Pop-Location }
+      - name: Actual package host/backend/runtime update consistency
+        run: |
+          $current = @(Get-ChildItem .local/ci/candidate/*.tgz)[0].FullName
+          $previous = @(Get-ChildItem .local/ci/previous-package/*.tgz)[0].FullName
+          node scripts/accept-build-consistency.mjs --archive $current --previous-archive $previous --work .local/ci/build-consistency
+          if ($LASTEXITCODE) { throw 'Package update consistency failed' }
       - name: Actual package install, isolated health, reads, upgrade and rollback
         run: |
           $current = @(Get-ChildItem .local/ci/candidate/*.tgz)[0].FullName
@@ -99,6 +111,7 @@ jobs:
           name: clean-windows-release-validation
           path: |
             .local/ci/results/*.json
+            .local/ci/build-consistency/report.json
             .local/ci/candidate/audit.json
             .local/ci/install-acceptance/report.json
           if-no-files-found: warn

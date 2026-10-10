@@ -1,3 +1,4 @@
+import { RUNNING_BUILD, requireCompatibleService, type BuildIdentity } from './build.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 const httpDispatch = new AsyncLocalStorage<() => void>();
 export const withHttpDispatch = <T>(observe: () => void, body: () => T): T => httpDispatch.run(observe, body);
@@ -102,7 +103,7 @@ export class KnowledgeClient {
     // `{requestMs, fastMs, deepMs}` would otherwise leave `cancelMs` undefined, and `AbortSignal.timeout` has
     // no default of its own. That is not a hypothetical - it silently made cleanup abort before it could be
     // sent, which is exactly the "the job ran on with nobody able to stop it" shape this round repairs.
-    timing: Partial<ClientTiming> = {}) {
+    timing: Partial<ClientTiming> = {}, private build: BuildIdentity | null = RUNNING_BUILD) {
     this.timing = { requestMs: timing.requestMs ?? 10_000, cancelMs: timing.cancelMs ?? 5_000,
       fastMs: timing.fastMs ?? 120_000, deepMs: timing.deepMs ?? 270_000 };
     const parsed = new URL(url);
@@ -113,6 +114,8 @@ export class KnowledgeClient {
     if (token.length < 24) throw new KnowledgeFailure('KNOWLEDGE_NOT_CONFIGURED', { detail: { layer: 'plugin' } });
   }
   private async request(path: string, options: RequestInit = {}) {
+    const business = path.startsWith('/libraries') || ['/reads','/documents','/catalogue'].includes(path) || (path === '/queries' && options.method === 'POST');
+    if (business) await requireCompatibleService(this.url,this.token,this.build,options.signal ?? undefined);
     httpDispatch.getStore()?.();
     let signal: AbortSignal;
     if (options.signal) {
@@ -125,7 +128,7 @@ export class KnowledgeClient {
     }
     const response = await fetch(this.url + path, {
       ...options, redirect: 'error',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}`, ...(this.build ? {'X-Knowledge-Build':this.build.id} : {}) },
       signal,
     });
     if (!response.ok) {
@@ -413,7 +416,7 @@ export class KnowledgeClient {
     try {
       const response = await fetch(this.url + path, {
         method: 'POST', redirect: 'error',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}`, ...(this.build ? {'X-Knowledge-Build':this.build.id} : {}) },
         body: JSON.stringify({ ...owner, requestId, cancelIntent }),
         signal: AbortSignal.timeout(timeoutMs),
       });
@@ -475,7 +478,7 @@ export class KnowledgeClient {
   private async reconcile(requestId: string, owner: QueryOwner, timeoutMs: number): Promise<{ id: string | null; state: string | null }> {
     try {
       const response = await fetch(`${this.url}/queries?requestId=${encodeURIComponent(requestId)}&${ownerQuery(owner)}`, {
-        redirect: 'error', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}` },
+        redirect: 'error', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.token}`, ...(this.build ? {'X-Knowledge-Build':this.build.id} : {}) },
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (!response.ok) return { id: null, state: null };

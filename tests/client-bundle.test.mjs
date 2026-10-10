@@ -537,7 +537,7 @@ test('both halves declare the same failure sets', () => {
   // the offending parameter, so a name present on one side only would be dropped on the other or rendered
   // unlabelled.
   assert.deepEqual(members(sourceText, 'FAILURE_PARAMETERS'), members(hostSource, 'FAILURE_PARAMETERS'));
-  assert.equal(members(sourceText, 'SERVICE_CODES').length, 29);
+  assert.equal(members(sourceText, 'SERVICE_CODES').length, 31);
   // The query lifecycle sets are the same kind of duplication and get the same comparison: the browser half
   // renders a job state, so a state present on one side only would be dropped there or rendered unlabelled.
   assert.deepEqual(members(sourceText, 'QUERY_PHASES'), members(hostSource, 'QUERY_PHASES'));
@@ -610,7 +610,7 @@ test('the bundle only fetches the host panel bridge and holds no service secret'
     'process.env', 'openFile']) {
     assert.ok(!sourceCode.includes(forbidden), `the browser half must not contain ${forbidden}`);
   }
-  const fetches = [...sourceCode.matchAll(/fetch\(([^,]+)/g)].map(match => match[1]);
+  const fetches = [...sourceCode.replace('globalThis.fetch(input,', 'globalThis.forward(input,').matchAll(/fetch\(([^,]+)/g)].map(match => match[1]);
   // Every browser request goes to the host's own panel bridge, which holds the credential; the browser half
   // never addresses the service itself. The count is asserted so a new request cannot be added silently.
   assert.equal(fetches.length, 7);

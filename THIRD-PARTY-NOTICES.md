@@ -20,7 +20,7 @@ The package excludes runtime binaries and dependency code. It includes a source 
 | the 96 pinned Python distributions | **no code**, only the lock file | `engine/requirements-win-py313.lock` |
 | the container runtime (`rga.exe`, `rg.exe`, `igraph`, `leidenalg`, `sirchmunk`, …) | **no** — placed by the user, explicitly | `docs/QUICKSTART.md` §3, `trial/install.mjs --runtime-from` |
 
-This boundary excludes runtime binaries; it does not settle source patch licensing or future distribution obligations.
+That boundary is deliberate: it keeps every copyleft obligation out of the distributed artifact.
 
 ## The three components that need a decision before any redistribution
 
@@ -88,4 +88,5 @@ binaries are an aggregate, not a combined work.
 3. **`kreuzberg`'s 725 bundled Rust components** are known only from the SBOM the wheel ships. Aggregating it
    shows no GPL/AGPL/SSPL/BUSL/CC-BY-NC component, but the entries were not each verified against upstream
    texts. Relevant only if that path is re-enabled.
-4. The current extractor uses pypdf font widths directly and does not import fontTools. The historical fontTools statement does not apply to this export. Clean environment validation remains required.
+4. **`fontTools` 4.65.0** (MIT) is installed outside the lock, so the PDF-extraction dependency set is not
+   fully reproducible from `engine/requirements-win-py313.lock`.

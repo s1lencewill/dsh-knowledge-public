@@ -1,6 +1,6 @@
 {
   "name": "@s1lencewill/dsh-knowledge",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "DSH knowledge-base plugin backed by a managed Sirchmunk service",
   "type": "module",
   "main": "lib/index.js",
@@ -44,7 +44,8 @@
     "CONTRIBUTING.md",
     "LICENSE",
     "NOTICE",
-    "docs/RELEASE-VALIDATION.md"
+    "docs/RELEASE-VALIDATION.md",
+    "docs/BUILD-CONSISTENCY.md"
   ],
   "dsh": {
     "bundle": {

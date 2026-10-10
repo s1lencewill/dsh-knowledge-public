@@ -1,16 +1,17 @@
 /**
- * Copy the tracked browser half (`ui/source-card.js`) to the served artifact (`lib/browser.js`).
+ * Render the tracked browser half (`ui/source-card.js`) to the served artifact (`lib/browser.js`).
  *
  * The host serves built client bundles, and `lib/` is a build output (gitignored). The browser half is
  * hand-authored in the loader's lazy-CJS container format, so this step is a copy rather than a bundle:
- * it adds no bundler, no new dependency and no transpile step, and what is reviewed in `ui/` is byte for
- * byte what the browser executes.
+ * it adds no bundler or new dependency. Only the frozen build identity placeholder is substituted;
+ * installation checks compare the deterministic rendered bytes.
  *
  * The artifact is `lib/browser.js`, NOT the conventional `lib/client.js`, and `exports["./client"]`
  * points here. `src/client.ts` already compiles to `lib/client.js` (the host-side service adapter), and
  * the loader resolves the browser half through `exports["./client"].default` rather than by convention
  * (`dsh-client-modules` `clientExportOf`), so a distinct path is both safe and unambiguous.
  */
+import { buildIdentity, renderBrowser } from './build-identity.mjs';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,5 +34,6 @@ if (/sourceMappingURL/.test(source)) {
 }
 mkdirSync(dirname(to), { recursive: true });
 // Bytes, not text: a text write would fold to the platform newline and change the served file.
-writeFileSync(to, Buffer.from(source, 'utf8'));
+const identity=buildIdentity(root);
+writeFileSync(to, Buffer.from(renderBrowser(source,identity.id,identity.name), 'utf8'));
 console.log(`client bundle written: ${to} (${Buffer.byteLength(source)} bytes)`);

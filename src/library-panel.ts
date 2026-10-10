@@ -1,6 +1,7 @@
 /** Human control plane. Workspace is read from the host session, never from browser or model arguments. */
+import { RUNNING_BUILD, requireCompatibleService } from './build.js';
 import { LibrarySelection } from './selection.js';
-export const LIBRARY_CODES=new Set(['SESSION_UNAVAILABLE','SERVICE_UNAVAILABLE','INVALID_LIBRARY_ACTION','LIBRARY_NOT_VISIBLE','FOLDER_INVALID','NAME_INVALID','UPDATE_UNAVAILABLE','UPDATE_WORKSPACE_MISMATCH','FOLDER_OUTSIDE_WORKSPACE','FOLDER_OVERLAPS_STORAGE','LINK_NOT_ALLOWED','WORKSPACE_TOO_BROAD','LIBRARY_CAPACITY_EXCEEDED','SOURCE_CHANGED','CONFIG_INVALID','PREVIEW_LIMIT','CONSENT_REQUIRED','PREVIEW_EXPIRED','PREVIEW_FOREIGN','PREFLIGHT_FAILED','PUBLISH_BUSY','CONFIG_CHANGED','LOCAL_BUILD_FAILED','LIBRARY_ACTION_FAILED','SELECTION_FILE_UNREADABLE','SELECTION_NOT_SAVED']);
+export const LIBRARY_CODES=new Set(['BUILD_MISMATCH','SESSION_UNAVAILABLE','SERVICE_UNAVAILABLE','INVALID_LIBRARY_ACTION','LIBRARY_NOT_VISIBLE','FOLDER_INVALID','NAME_INVALID','UPDATE_UNAVAILABLE','UPDATE_WORKSPACE_MISMATCH','FOLDER_OUTSIDE_WORKSPACE','FOLDER_OVERLAPS_STORAGE','LINK_NOT_ALLOWED','WORKSPACE_TOO_BROAD','LIBRARY_CAPACITY_EXCEEDED','SOURCE_CHANGED','CONFIG_INVALID','PREVIEW_LIMIT','CONSENT_REQUIRED','PREVIEW_EXPIRED','PREVIEW_FOREIGN','PREFLIGHT_FAILED','PUBLISH_BUSY','CONFIG_CHANGED','LOCAL_BUILD_FAILED','LIBRARY_ACTION_FAILED','SELECTION_FILE_UNREADABLE','SELECTION_NOT_SAVED']);
 const ACTIONS=new Set(['select','default','preview','publish','cancel','refresh','remove']);
 const FIELDS=new Set(['libraryAction','libraryId','root','name','previewId','consent']);
 export class LibraryPanel {
@@ -15,8 +16,9 @@ export class LibraryPanel {
   private async request(context:any,value:any) {
     const {url,token}=this.endpoint(),parsed=new URL(url);
     if(parsed.protocol!=='http:' || parsed.hostname!=='127.0.0.1' || parsed.username || parsed.password || token.length<24)throw Error('SERVICE_UNAVAILABLE');
+    try{await requireCompatibleService(parsed.origin,token,RUNNING_BUILD);}catch{throw Error('BUILD_MISMATCH');}
     const response=await fetch(parsed.origin+'/library-admin',{method:'POST',redirect:'error',
-      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',...(RUNNING_BUILD?{'X-Knowledge-Build':RUNNING_BUILD.id}:{})},
       body:JSON.stringify({...value,...context}),signal:AbortSignal.timeout(value.action==='preview'||value.action==='publish'?120000:5000)});
     const body=await response.json();
     if(!response.ok)throw Error(typeof body.code==='string' && LIBRARY_CODES.has(body.code)?body.code:'LIBRARY_ACTION_FAILED');

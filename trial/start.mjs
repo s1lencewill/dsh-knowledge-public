@@ -6,6 +6,7 @@
  * isolation. The service and the DSH host are detached with their output appended to the instance's own log
  * files, and their pids are recorded with enough identity to be verified later by `stop`.
  */
+import { compatibleInstalledHealth } from './release-build.mjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
@@ -94,6 +95,7 @@ const health = await waitForHealth(`http://127.0.0.1:${config.servicePort}/healt
 if (health.status !== 200) {
   say('');
   say(`Service did not become healthy (last HTTP ${health.status}${health.error ? `: ${health.error}` : ''}).`);
+  if(!compatibleInstalledHealth(paths.app,health.body))say('Build or runtime mismatch: complete the update and restart the backend.');
   say(`Read ${serviceLog}, then stop this instance with: node trial/stop.mjs --target "${target}"`);
   process.exit(1);
 }
@@ -101,8 +103,9 @@ const isolated = check(`service healthy (isolationActive=${health.body?.isolatio
   () => health.body?.isolationActive === true ? true
     : { state: 'fail', detail: 'the service answered but reports isolation is NOT active; refusing to call '
       + 'this instance usable' });
-if (isolated === 'fail') {
+if (isolated === 'fail' || !compatibleInstalledHealth(paths.app,health.body)) {
   say('');
+  if(!compatibleInstalledHealth(paths.app,health.body))say('Build or runtime mismatch: complete the update and restart the backend.');
   say(`Read ${serviceLog}, then stop this instance with: node trial/stop.mjs --target "${target}"`);
   process.exit(1);
 }

@@ -37,6 +37,7 @@ export const FAILURE_CODES = [
   'KNOWLEDGE_SERVICE_TIMEOUT',
   'KNOWLEDGE_SERVICE_UNAUTHORIZED',
   'KNOWLEDGE_SERVICE_UNAVAILABLE',
+  'KNOWLEDGE_BUILD_MISMATCH',
   'KNOWLEDGE_REQUEST_CANCELLED',
   // Service refusals that need a specific user action.
   'KNOWLEDGE_SOURCE_CHANGED',
@@ -143,6 +144,11 @@ export const FAILURE_ADVICE: Record<FailureCode, FailureAdvice> = {
     reason: '知识库服务拒绝了随请求发送的凭据。',
     action: '核对部署侧配置的访问令牌与服务端配置是否一致，然后重启宿主。',
   },
+  KNOWLEDGE_BUILD_MISMATCH: {
+    category: '知识库组件版本不一致',
+    reason: '页面、插件、后端或隔离运行时未加载同一构建，本次业务请求未发出。',
+    action: '完成整套更新并重启后端与宿主，刷新页面后再试；已有任务仍可取消。',
+  },
   KNOWLEDGE_SERVICE_UNAVAILABLE: {
     category: '知识库服务内部错误',
     reason: '知识库服务返回了服务端错误，这次调用没有结果。',
@@ -248,6 +254,7 @@ export type FailureLayer = 'plugin' | 'transport' | 'service' | 'host';
 
 /** The service codes this plugin recognises. Membership is the check; there is no pattern to slip past. */
 export const KNOWN_SERVICE_CODES = [
+  'BUILD_MISMATCH', 'RUNTIME_BUILD_MISMATCH',
   'SOURCE_VERSION_CHANGED',
   'READ_SOURCE_VERSION_MISMATCH',
   'READ_HANDLE_INVALID',
@@ -1109,6 +1116,7 @@ export function classifyFailure(error: unknown): ClassifiedFailure {
       // A valid identifier whose file the library can no longer resolve. This one *is* about the file.
       return { code: 'KNOWLEDGE_SOURCE_UNAVAILABLE', detail: detail('KNOWLEDGE_SOURCE_UNAVAILABLE') };
     }
+    if (serviceCode === 'BUILD_MISMATCH' || serviceCode === 'RUNTIME_BUILD_MISMATCH') return {code:'KNOWLEDGE_BUILD_MISMATCH',detail:detail('KNOWLEDGE_BUILD_MISMATCH')};
     if (status === 409 && serviceCode === 'SOURCE_VERSION_CHANGED') return { code: 'KNOWLEDGE_SOURCE_CHANGED', detail: detail('KNOWLEDGE_SOURCE_CHANGED') };
     // The two read-shape refusals, before any status-based fallback: a 400 that names *which* part of the
     // request was wrong is actionable, and folding it into KNOWLEDGE_REQUEST_REJECTED is what made an

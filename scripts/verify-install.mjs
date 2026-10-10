@@ -166,13 +166,15 @@ if (installedTools) {
   });
 }
 
+import { renderBrowser, sha } from './build-identity.mjs';
 // --- 3. the served client bundle is the tracked browser half, in both copies
 const bundle = join(app, 'lib', 'browser.js');
 const installedUi = join(app, 'ui', 'source-card.js');
 const repositoryUi = join(repository, 'ui', 'source-card.js');
-check('the installed client bundle is byte-identical to the installed browser half', () => {
+check('the installed client bundle equals the browser source rendered with its build identity', () => {
   if (!existsSync(bundle) || !existsSync(installedUi)) return { state: 'fail', detail: 'a bundle file is missing' };
-  return sha256(bundle) === sha256(installedUi) ? true : { state: 'fail', detail: 'lib/browser.js != ui/source-card.js' };
+  const identity=JSON.parse(readFileSync(join(app,'lib/build-identity.json'),'utf8'));
+  return sha256(bundle) === sha(Buffer.from(renderBrowser(readFileSync(installedUi,'utf8'),identity.id,identity.name))) ? true : { state: 'fail', detail: 'lib/browser.js != ui/source-card.js' };
 });
 check('the installed browser half is byte-identical to the repository source', () => {
   if (!existsSync(repositoryUi)) return { state: 'fail', detail: 'the repository has no ui/source-card.js' };
@@ -220,8 +222,8 @@ check('cordis.patch.yml still carries the plugin row', () => {
   const patch = join(app, 'cordis.patch.yml');
   if (!existsSync(patch)) return { state: 'fail', detail: 'cordis.patch.yml is missing' };
   const text = readFileSync(patch, 'utf8');
-  const name = JSON.parse(readFileSync(join(app, 'package.json'), 'utf8')).name;
-  return text.split('\n').some(line => line.trim() === `name: ${name}` || line.trim() === `name: "${name}"`) ? true : { state: 'fail', detail: 'no matching package row' };
+  const name=JSON.parse(readFileSync(join(app,'package.json'),'utf8')).name;
+  return text.split(/\r?\n/).some(line=>line.trim().startsWith('name:') && line.trim().slice(5).trim().replace(/^["']|["']$/g,'')===name) ? true : { state: 'fail', detail: 'no dsh-knowledge row' };
 });
 check('the installed client bundle declares one keyed slot per tool', () => {
   const text = readFileSync(bundle, 'utf8');
