@@ -5,5 +5,9 @@
   "license": "AGPL-3.0-or-later",
   "licenseSHA256": "5e01d167766c9eb7b0ec55cdcf676152494122c53850f1c1f2df26d7aba0736f",
   "patchSHA256": "aed4da4e353e6ce1f12491ee65db483be2040fe88d0e266dea0f6a53c2c69670",
-  "binaryIncluded": false
+  "binaryIncluded": false,
+  "upstreamLicenseSHA256": "aeea9442ed90a5ec88fb04c8c85a0817075ca6687246d79f108c1b51cb8fcf87",
+  "licenseByteNote": "licenseSHA256 binds the included CRLF notice; upstreamLicenseSHA256 binds the pinned upstream LF blob.",
+  "appliedPatchSHA256": "2685936dc75b9bccc4b27880c1371ed95c0b9689bd12e141925cf05c3109be81",
+  "patchByteNote": "patchSHA256 binds the distributed patch; appliedPatchSHA256 binds CRLF-to-LF normalized patch bytes used against the upstream LF checkout."
 }

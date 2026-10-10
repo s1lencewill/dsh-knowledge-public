@@ -59,7 +59,7 @@ def run(command, **kwargs):
     if result.returncode != 0:
         print((result.stdout or "")[-2000:])
         print((result.stderr or "")[-2000:], file=sys.stderr)
-        raise SystemExit("failed: %s" % " ".join(str(part) for part in command))
+        raise SystemExit("failed: %s" % (command if isinstance(command,str) else " ".join(str(part) for part in command)))
     return result
 
 
@@ -71,26 +71,32 @@ def fetch(force):
             raise SystemExit("SOURCE_DIRECTORY_UNSAFE")
         shutil.rmtree(SOURCE)
     env = build_environment()
-    run(["git", "-c", "http.sslbackend=openssl", "clone", "--depth", "1", "--branch", TAG, REPO, str(SOURCE)], env=env)
+    run(["git", "-c", "http.sslbackend=openssl", "clone", "--config", "core.autocrlf=false", "--depth", "1", "--branch", TAG, REPO, str(SOURCE)], env=env)
 
 
 def verify_source():
     expected = json.loads((BASE / "tools/rga/SOURCE.json").read_text(encoding="utf-8"))
     commit = run(["git", "rev-parse", "HEAD"], cwd=str(SOURCE)).stdout.strip()
     if commit != expected["commit"]: raise SystemExit("RGA_SOURCE_COMMIT_CHANGED")
-    if hashlib.sha256((SOURCE / "LICENSE.md").read_bytes()).hexdigest() != expected["licenseSHA256"]:
+    if hashlib.sha256((SOURCE / "LICENSE.md").read_bytes()).hexdigest() != expected["upstreamLicenseSHA256"]:
         raise SystemExit("RGA_LICENSE_CHANGED")
     if hashlib.sha256(PATCH.read_bytes()).hexdigest() != expected["patchSHA256"]:
         raise SystemExit("RGA_PATCH_CHANGED")
 
 
 def apply_patch():
-    check = subprocess.run(["git", "apply", "--check", str(PATCH)], cwd=str(SOURCE), capture_output=True, text=True)
+    effective = BASE / ".local/rga-patch-lf.patch"
+    patch_bytes = PATCH.read_bytes().replace(b"\r\n", b"\n")
+    expected = json.loads((BASE / "tools/rga/SOURCE.json").read_text(encoding="utf-8"))
+    if hashlib.sha256(patch_bytes).hexdigest() != expected["appliedPatchSHA256"]:
+        raise SystemExit("RGA_APPLIED_PATCH_CHANGED")
+    effective.write_bytes(patch_bytes)
+    check = subprocess.run(["git", "apply", "--check", str(effective)], cwd=str(SOURCE), capture_output=True, text=True)
     if check.returncode == 0:
-        run(["git", "apply", str(PATCH)], cwd=str(SOURCE))
+        run(["git", "apply", str(effective)], cwd=str(SOURCE))
         print("patch applied")
         return
-    applied = subprocess.run(["git", "apply", "--reverse", "--check", str(PATCH)], cwd=str(SOURCE),
+    applied = subprocess.run(["git", "apply", "--reverse", "--check", str(effective)], cwd=str(SOURCE),
                              capture_output=True, text=True)
     if applied.returncode == 0:
         print("patch already applied")
@@ -99,14 +105,24 @@ def apply_patch():
     raise SystemExit("patch does not apply cleanly; re-verify the pinned tag")
 
 
+def run_cargo(vcvars, manifest, features=()):
+    # cmd does not understand list2cmdline's backslash-escaped inner quotes. Use its explicit
+    # /s /c command form; paths remain environment data, never interpolated shell source.
+    if any(not feature.replace("-", "").isalnum() for feature in features): raise ValueError("CARGO_FEATURE_INVALID")
+    env = dict(build_environment(), CARGO_TERM_COLOR="never",
+               DSH_KNOWLEDGE_BUILD_VCVARS=str(vcvars), DSH_KNOWLEDGE_BUILD_MANIFEST=str(manifest))
+    flags = " --features " + ",".join(features) if features else ""
+    command = ('cmd /d /s /v:off /c "call "%DSH_KNOWLEDGE_BUILD_VCVARS%" >nul 2>&1 && '
+               'cargo build --release --locked' + flags + ' --manifest-path "%DSH_KNOWLEDGE_BUILD_MANIFEST%""')
+    return run(command, env=env)
+
+
 def build():
     vcvars = find_vcvars()
     if vcvars is None:
         raise SystemExit("MSVC_REQUIRED")
-    command = 'call "%s" >nul 2>&1 && cargo build --release --locked --manifest-path "%s"' % (vcvars, SOURCE / "Cargo.toml")
-    env = dict(build_environment(), CARGO_TERM_COLOR="never")
     print("building (this takes minutes on a cold registry) ...")
-    run(["cmd", "/c", command], env=env)
+    run_cargo(vcvars, SOURCE / "Cargo.toml")
 
 
 def install():

@@ -14,10 +14,9 @@ def main():
  source=ROOT/'.local/ci/rg-source';rg=ROOT/'.local/tools/rg.exe';rga=ROOT/'.local/tools/rga-patched/rga.exe'
  if source.exists() or rg.exists() or rga.exists() or (ROOT/'.local/rga-src').exists():raise SystemExit('COLD_BUILD_REQUIRES_EMPTY_TOOL_DIRECTORIES')
  source.parent.mkdir(parents=True,exist_ok=True)
- run(['git','clone','--depth','1','--branch','15.1.0','https://github.com/BurntSushi/ripgrep.git',str(source)])
+ run(['git','clone','--config','core.autocrlf=false','--depth','1','--branch','15.1.0','https://github.com/BurntSushi/ripgrep.git',str(source)])
  if run(['git','rev-parse','HEAD'],cwd=source)!=RG_COMMIT:raise SystemExit('RG_SOURCE_COMMIT_CHANGED')
- command='call "%s" >nul 2>&1 && cargo build --release --locked --features pcre2 --manifest-path "%s"' % (vc,source/'Cargo.toml')
- run(['cmd','/c',command]);rg.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source/'target/release/rg.exe',rg)
+ builder['run_cargo'](vc,source/'Cargo.toml',features=('pcre2',));rg.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source/'target/release/rg.exe',rg)
  run([sys.executable,str(ROOT/'scripts/build-rga-patched.py')])
  expected=json.loads((ROOT/'tools/rga/SOURCE.json').read_text(encoding='utf8'))
  if run(['git','rev-parse','HEAD'],cwd=ROOT/'.local/rga-src')!=expected['commit']:raise SystemExit('RGA_SOURCE_COMMIT_CHANGED')
