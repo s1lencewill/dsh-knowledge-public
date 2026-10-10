@@ -1,6 +1,6 @@
 # Alpha release gates
 
-Candidate: 0.1.0-alpha.6, Apache-2.0 for original code; third-party licenses retained. private:true stays enabled until all required gates pass. Repository stays private while Windows CI is pending.
+Candidate: 0.1.0-alpha.7, Apache-2.0 for original code; third-party licenses retained. private:true stays enabled until all required gates pass. Repository stays private while Windows CI is pending.
 
 Accounts verified: s1lencewill (GitHub and npm). Proposed public names: @s1lencewill/dsh-knowledge and s1lencewill/dsh-knowledge-public. No private project history is copied.
 

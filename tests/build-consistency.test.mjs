@@ -55,3 +55,12 @@ test('rendered browser bridge sends only public build identity, never service to
  assert.equal(actual.opts.headers.get('X-Knowledge-Client-Build'),id);assert.equal(actual.opts.headers.get('Authorization'),null);
  }finally{globalThis.fetch=original;}
 });
+import {buildIdentity} from '../scripts/build-identity.mjs';
+test('SDK validation refuses parent fallback and mismatched local versions',()=>{
+ const root=mkdtempSync(join(tmpdir(),'sdk-build-'));try{
+ const sdk=['@deepseek-ai/dsh-tools','@deepseek-ai/dsh-llm'];const dependencies=Object.fromEntries(sdk.map(n=>[n,'0.2.0-rc.2']));writeFileSync(join(root,'package.json'),JSON.stringify({devDependencies:dependencies,peerDependencies:dependencies}));
+ assert.throws(()=>buildIdentity(root),/BUILD_SDK_NOT_LOCAL/);
+ for(const name of sdk){const path=join(root,'node_modules',name);mkdirSync(path,{recursive:true});writeFileSync(join(path,'package.json'),JSON.stringify({version:'old'}));}
+ assert.throws(()=>buildIdentity(root),/BUILD_SDK_VERSION_MISMATCH/);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
