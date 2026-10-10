@@ -19,9 +19,16 @@ export function createIdentity(root){
   for(const m of match[1].matchAll(/"([^"]+)"/g)){const p=section==='ENGINE_FILES'?'engine/'+m[1]:m[1];runtimeInputs[p]=sha(readFileSync(join(root,p)));}
  }
  const browserSourceHash=sha(readFileSync(join(root,'ui/source-card.js')));
- const basis={schemaVersion:1,protocol:1,name:pkg.name,version:pkg.version,files,runtimeInputs,browserSourceHash};
+ const basis={schemaVersion:1,protocol:1,name:pkg.name,version:pkg.version,hostPeers:pkg.peerDependencies,nodeLockSHA256:sha(readFileSync(join(root,'package-lock.json'))),files,runtimeInputs,browserSourceHash};
  const id=sha(JSON.stringify(basis));
  return {...basis,id,browserSHA256:sha(Buffer.from(renderBrowser(readFileSync(join(root,'ui/source-card.js'),'utf8'),id,pkg.name)))};
 }
-export function buildIdentity(root){const identity=createIdentity(root);mkdirSync(join(root,'lib'),{recursive:true});writeFileSync(join(root,'lib/build-identity.json'),JSON.stringify(identity,null,2)+'\n');return identity;}
+export function buildIdentity(root){
+ const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));
+ for(const name of ['@deepseek-ai/dsh-tools','@deepseek-ai/dsh-llm']){
+  const declared=pkg.devDependencies?.[name];
+  let local;try{local=JSON.parse(readFileSync(join(root,'node_modules',name,'package.json'),'utf8'));}catch{throw Error('BUILD_SDK_NOT_LOCAL');}
+  if(declared!==pkg.peerDependencies?.[name] || local.version!==declared)throw Error('BUILD_SDK_VERSION_MISMATCH');
+ }
+ const identity=createIdentity(root);mkdirSync(join(root,'lib'),{recursive:true});writeFileSync(join(root,'lib/build-identity.json'),JSON.stringify(identity,null,2)+'\n');return identity;}
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)console.log(buildIdentity(resolve(fileURLToPath(new URL('..',import.meta.url)))).id);
