@@ -70,6 +70,7 @@ jobs:
           .venv\Scripts\python.exe -c "import os; from pathlib import Path; p=Path('.local/ci/symlink-probe'); (p/'target').write_text('synthetic'); os.symlink('target',p/'link'); assert (p/'link').is_symlink(); assert (p/'link').read_text()=='synthetic'; (p/'link').unlink()"
           if ($LASTEXITCODE) { throw 'Symlinks are unavailable; release checks must not skip' }
       - name: Regressions with zero skipped Python release checks
+        timeout-minutes: 10
         run: |
           .venv\Scripts\python.exe scripts\setup-fixtures.py
           .venv\Scripts\python.exe scripts\verify-python-skips.py --release --out .local/ci/results/python.json

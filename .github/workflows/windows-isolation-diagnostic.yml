@@ -1,0 +1,68 @@
+name: Windows isolation teardown diagnostic
+on:
+  workflow_dispatch:
+    inputs:
+      previous_ref:
+        description: Full 40-character SHA of the prior allowlisted candidate in this repository
+        required: true
+        type: string
+      candidate_sha256:
+        description: SHA256 of the reviewed final npm archive; mismatch rejects the run
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  cold-build-install:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DSH_KNOWLEDGE_RG: ${{ github.workspace }}/.local/tools/rg.exe
+      DSH_KNOWLEDGE_RGA: ${{ github.workspace }}/.local/tools/rga-patched/rga.exe
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      PYTHONDONTWRITEBYTECODE: '1'
+      PREVIOUS_REF: ${{ inputs.previous_ref }}
+      EXPECTED_CANDIDATE_SHA: ${{ inputs.candidate_sha256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          activate-environment: release-base
+          python-version: '3.13'
+          auto-activate-base: false
+          miniconda-version: latest
+      - name: Create a fresh project environment (no dependency caches)
+        run: |
+          if ($env:PREVIOUS_REF -notmatch '^[0-9a-f]{40}$' -or $env:EXPECTED_CANDIDATE_SHA -notmatch '^[0-9a-f]{64}$') { throw 'Invalid immutable input' }
+          if (Test-Path .venv) { throw 'Existing Python environment is forbidden' }
+          conda run -n release-base python -m venv .venv
+          if ($LASTEXITCODE) { throw 'Fresh environment failed' }
+          .venv\Scripts\python.exe -m pip install --no-cache-dir -r engine\requirements-win-py313.lock
+          if ($LASTEXITCODE) { throw 'Dependency lock could not be installed' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE) { throw 'Node lock could not be installed' }
+          npm install --global @deepseek-ai/dsh@0.2.0-rc.2 --ignore-scripts
+          if ($LASTEXITCODE) { throw 'Pinned DSH host install failed' }
+          npm run build
+          if ($LASTEXITCODE) { throw 'Build failed' }
+      - name: Diagnose real named-pipe teardown without provider calls
+        timeout-minutes: 4
+        run: |
+          .venv\Scripts\python.exe scripts\verify-python-skips.py --pattern service_isolation_test.py --trace-after 20 --out .local/ci/results/isolation-diagnostic.json
+          if ($LASTEXITCODE) { throw 'Isolation regression failed' }
+      - name: Preserve synthetic diagnostic progress
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: isolation-diagnostic
+          path: .local/ci/results/*.json
