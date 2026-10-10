@@ -13,6 +13,24 @@ import traceback
 import types
 
 
+def install_local_pipe_namespace(windows_utils):
+    """Redirect only asyncio's pipe API, independent of its name-generation implementation."""
+    original = windows_utils._winapi
+    def local_name(name):
+        prefix = "\\\\.\\pipe\\"
+        if isinstance(name, str) and name.startswith(prefix) and not name.startswith(prefix + "LOCAL\\"):
+            return prefix + "LOCAL\\" + name[len(prefix):]
+        return name
+    class LocalPipeAPI:
+        def __getattr__(self, name):
+            return getattr(original, name)
+        def CreateNamedPipe(self, name, *args, **kwargs):
+            return original.CreateNamedPipe(local_name(name), *args, **kwargs)
+        def CreateFile(self, name, *args, **kwargs):
+            return original.CreateFile(local_name(name), *args, **kwargs)
+    windows_utils._winapi = LocalPipeAPI()
+
+
 def main():
     config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     state = Path(config["stateDir"])
@@ -32,13 +50,7 @@ def main():
     # CPython 3.13 asks for a global named pipe for asyncio subprocesses; an AppContainer may only
     # use its own namespace. Scope the adapter to asyncio.windows_utils, never the shared tempfile.
     import asyncio.windows_utils as windows_utils
-    original_mktemp = windows_utils.tempfile.mktemp
-
-    def local_pipe_name(**kwargs):
-        kwargs["prefix"] = kwargs["prefix"].replace("\\\\.\\pipe\\", "\\\\.\\pipe\\LOCAL\\", 1)
-        return original_mktemp(**kwargs)
-
-    windows_utils.tempfile = types.SimpleNamespace(mktemp=local_pipe_name)
+    install_local_pipe_namespace(windows_utils)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     result = {"status": "failed", "answer": "", "evidence": [], "warnings": ["CONTAINER_ENTRY_FAILURE"]}
     try:

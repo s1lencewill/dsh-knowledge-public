@@ -424,7 +424,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
                # old" job would be reclaimed by the very rule under test instead of exercising it.
                "finishedAt": time.monotonic()}
         with patch.object(service, "JOBS", {"old":job}), patch.object(service, "MAX_JOBS", 1), \
-             patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]):
+             patch.object(service, "library_config", return_value={"libraries": []}), patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]):
             with self.assertRaises(service.HTTPException) as caught:
                 await service.submit(service.Query(workspace="unused", libraryId="f", query="q",
                                                    session="session-a"))
@@ -443,7 +443,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
         async def finish(job, request):
             job["result"] = service.terminal("partial", "new")
         with patch.object(service, "JOBS", {"old": job}), patch.object(service, "MAX_JOBS", 1), \
-             patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]), \
+             patch.object(service, "library_config", return_value={"libraries": []}), patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]), \
              patch.object(service, "execute", finish):
             accepted = await service.submit(service.Query(workspace="unused", libraryId="f", query="q",
                                                           session="session-a"))
@@ -464,7 +464,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_a_missing_scope_is_refused_before_the_library_gate(self):
         """The refusal a caller gets must be about *their* request, not about a library they did not name."""
-        with patch.object(service, "libraries", return_value=[{"id": "f", "syntheticFixture": True, "root": "unused"}]):
+        with patch.object(service, "library_config", return_value={"libraries": []}), patch.object(service, "libraries", return_value=[{"id": "f", "syntheticFixture": True, "root": "unused"}]):
             with self.assertRaises(service.HTTPException) as caught:
                 await service.submit(service.Query(workspace="unused", libraryId="f", query="q"))
         self.assertEqual(caught.exception.status_code, 403)
@@ -477,7 +477,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
         async def finish(job, request):
             job["result"] = service.terminal("partial", "new fixture")
         with patch.object(service, "JOBS", {"old":job}), patch.object(service, "MAX_JOBS", 1), \
-             patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]), \
+             patch.object(service, "library_config", return_value={"libraries": []}), patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True,"root":"unused"}]), \
              patch.object(service, "execute", finish):
             first = await service.cancel("old")
             self.assertFalse(first["cancellationConfirmed"], "confirming an already completed result is not cancellation")
@@ -495,7 +495,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
         running = asyncio.get_running_loop().create_future()
         try:
             with patch.object(service, "JOBS", {"active":{"task":running}}), \
-                 patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True}]):
+                 patch.object(service, "library_config", return_value={"libraries": []}), patch.object(service, "libraries", return_value=[{"id":"f","syntheticFixture":True}]):
                 with self.assertRaises(service.HTTPException) as caught:
                     await service.submit(service.Query(workspace="unused", libraryId="f", query="q",
                                                        session="session-a"))

@@ -26,11 +26,34 @@ class EntryCheckpointTests(unittest.TestCase):
    root=Path(folder);config=root/'request.json';config.write_text(json.dumps({'stateDir':folder,'request':{}}),encoding='utf-8')
    async def run(_):return {'status':'partial','unsafe':object()}
    import asyncio.windows_utils as windows_utils
-   with patch.object(windows_utils,'tempfile',windows_utils.tempfile),patch.object(sys,'argv',['container_entry.py',str(config)]),patch.dict(sys.modules,{'worker':types.SimpleNamespace(run=run)}),patch.dict(container_entry.os.environ):
+   with patch.object(windows_utils,'_winapi',windows_utils._winapi),patch.object(sys,'argv',['container_entry.py',str(config)]),patch.dict(sys.modules,{'worker':types.SimpleNamespace(run=run)}),patch.dict(container_entry.os.environ):
     self.assertEqual(container_entry.main(),0)
    result=json.loads((root/'result.json').read_text());self.assertEqual(result['status'],'failed')
    self.assertEqual(result['warnings'],['CONTAINER_RESULT_SERIALIZE_FAILED'])
    self.assertEqual(service.worker_checkpoint(root),'RESULT_WRITTEN')
    sink=diagnostics.Diagnostics(root/'diagnostics.jsonl');sink.stage('worker_checkpoint','job-test',status=service.worker_checkpoint(root))
    row=json.loads((root/'diagnostics.jsonl').read_text());self.assertEqual(row['status'],'RESULT_WRITTEN')
+
+ def test_pipe_namespace_adapter_handles_new_and_old_name_generators(self):
+  from unittest.mock import Mock
+  api=Mock(); module=types.SimpleNamespace(_winapi=api)
+  container_entry.install_local_pipe_namespace(module)
+  prefix='\\\\.\\pipe\\'
+  for name in ['python-pipe-123-0-random','tmp-old-generator']:
+   module._winapi.CreateNamedPipe(prefix+name,1)
+   module._winapi.CreateFile(prefix+name,2)
+   api.CreateNamedPipe.assert_called_with(prefix+'LOCAL\\'+name,1)
+   api.CreateFile.assert_called_with(prefix+'LOCAL\\'+name,2)
+  module._winapi.CreateFile(prefix+'LOCAL\\existing',3)
+  api.CreateFile.assert_called_with(prefix+'LOCAL\\existing',3)
+  self.assertIs(module._winapi.CloseHandle,api.CloseHandle)
+ def test_real_asyncio_subprocess_works_after_namespace_adapter(self):
+  import asyncio.windows_utils as windows_utils
+  async def run():
+   proc=await asyncio.create_subprocess_exec(sys.executable,'-c','print(42)',stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
+   out,err=await asyncio.wait_for(proc.communicate(),15)
+   self.assertEqual(proc.returncode,0,err);self.assertEqual(out.strip(),b'42')
+  with patch.object(windows_utils,'_winapi',windows_utils._winapi):
+   container_entry.install_local_pipe_namespace(windows_utils)
+   asyncio.run(run())
 if __name__=='__main__':unittest.main()

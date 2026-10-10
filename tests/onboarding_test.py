@@ -112,4 +112,18 @@ class OnboardingTests(unittest.TestCase):
  def test_import_cannot_scan_its_own_managed_storage(self):
   with self.assertRaisesRegex(onboarding.Refused,'FOLDER_OVERLAPS_STORAGE'):
    self.manager.preview(str(Path(self.tmp.name)),'session-a',str(Path(self.tmp.name)))
+
+ def test_equivalent_workspace_spelling_can_publish_and_cancel(self):
+  alias=str(self.space/'..'/'workspace')
+  p=self.manager.preview(alias,'session-a',str(self.root))
+  result=self.manager.publish(p['previewId'],alias,'session-a',True)
+  self.assertEqual(result['code'],'LIBRARY_PUBLISHED')
+  p=self.manager.preview(alias,'session-a',str(self.root))
+  self.manager.cancel(p['previewId'],alias,'session-a')
+  self.assertNotIn(p['previewId'],self.manager.previews)
+ def test_equivalent_path_does_not_allow_foreign_session_or_workspace(self):
+  p=self.preview();other=self.space.parent/'other';other.mkdir()
+  for workspace,session in [(str(other),'session-a'),(str(self.space/'..'/'workspace'),'foreign')]:
+   with self.assertRaisesRegex(onboarding.Refused,'PREVIEW_FOREIGN'):
+    self.manager.publish(p['previewId'],workspace,session,True)
 if __name__=='__main__':unittest.main()

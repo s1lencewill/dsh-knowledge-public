@@ -1,6 +1,6 @@
 {
   "name": "@s1lencewill/dsh-knowledge",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "description": "DSH knowledge-base plugin backed by a managed Sirchmunk service",
   "type": "module",
   "main": "lib/index.js",

@@ -153,7 +153,7 @@ class EvidenceTests(unittest.TestCase):
                 yield entry
         with patch("evidence.os.walk", recording):
             manifest, _ = snapshot(self.root, self.base / "pruned")
-        self.assertEqual(visited, [self.root])
+        self.assertEqual(visited, [self.root.resolve()])
         self.assertEqual(len(manifest), 1)
 
     @unittest.skipUnless(os.name == "nt", "Windows junction regression")

@@ -57,7 +57,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(prepared["HTTPS_PROXY"], env["HTTPS_PROXY"])
             self.assertEqual(env["PATH"], "")
             self.assertEqual(env["NO_PROXY"], "[::1]")
-            self.assertIn(str(root), prepared["PATH"])
+            self.assertIn(str(root.resolve()), prepared["PATH"])
 
     def test_missing_executable_is_actionable(self):
         with tempfile.TemporaryDirectory() as temporary, patch("runtime.shutil.which", return_value=None):

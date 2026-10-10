@@ -54,6 +54,7 @@ class ProxyCase(unittest.TestCase):
         self.name = "dsh-proxy-test-" + uuid.uuid4().hex
         self.children = []
         self.threads = []
+        self.servers = []
         self.addCleanup(self._cleanup)
 
     def _cleanup(self):
@@ -61,13 +62,19 @@ class ProxyCase(unittest.TestCase):
             if child.poll() is None:
                 child.kill()
                 child.wait(timeout=10)
+        for proxy, pipe, thread in self.servers:
+            proxy.stop()
+            thread.join(timeout=5)
+            alive = thread.is_alive()
+            pipe.close()
+            self.assertFalse(alive, "proxy thread must exit before its pipe handle is closed/reused")
 
     def start_proxy(self, recorder, limits=None):
         pipe = ipc.PipeServer(self.name).listen()
         proxy = model_proxy.ModelProxy(pipe, PROVIDER, limits=limits, call=recorder)
         thread, outcome = model_proxy.serve_in_thread(proxy)
         self.threads.append(thread)
-        self.addCleanup(pipe.close)
+        self.servers.append((proxy, pipe, thread))
         # The serve thread waits for the child to connect; children start in each test.
         return proxy
 

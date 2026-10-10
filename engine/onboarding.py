@@ -147,12 +147,14 @@ class Manager:
             'diff':diff,'canPublish':not result['problems'],'workspace':str(workspace),'root':str(root),'name':entry['name'],
             'externalData':'ENGINE_SNIPPETS_AND_AGENT_READ_CONTEXT','maxFileBytes':capacity.resolve(old or {})}
     def cancel(self,token,workspace,session):
+        workspace=str(Path(workspace).resolve(strict=True))
         with self.lock:
             entry=self.previews.get(token)
             if entry and (entry['workspace'],entry['session'])==(workspace,session): self.previews.pop(token)
         return {'code':'PREVIEW_CANCELLED'}
     def publish(self,token,workspace,session,consent):
         if consent is not True: raise Refused('CONSENT_REQUIRED')
+        workspace=str(Path(workspace).resolve(strict=True))
         with self.lock:
             entry=self.previews.get(token)
             if not entry or self.clock()-entry['at']>=900: raise Refused('PREVIEW_EXPIRED')
