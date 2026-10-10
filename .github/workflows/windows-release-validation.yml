@@ -20,6 +20,8 @@ jobs:
       run:
         shell: pwsh
     env:
+      DSH_KNOWLEDGE_RG: ${{ github.workspace }}/.local/tools/rg.exe
+      DSH_KNOWLEDGE_RGA: ${{ github.workspace }}/.local/tools/rga-patched/rga.exe
       PYTHONUTF8: '1'
       PYTHONIOENCODING: utf-8
       PYTHONDONTWRITEBYTECODE: '1'

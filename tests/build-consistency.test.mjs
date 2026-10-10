@@ -42,6 +42,7 @@ test('cached browser from another build cannot change settings or issue data req
  const req=Readable.from(body?[JSON.stringify(body)]:[]);Object.assign(req,{method,url:'/knowledge-panel?sessionId=session-test',headers:{origin:'http://localhost',host:'localhost','content-type':'application/json','x-knowledge-client-build':header}});
  let text;const res={statusCode:200,setHeader(){},end(t){text=t;}};await handler(req,res);return {status:res.statusCode,body:JSON.parse(text)};};
  assert.equal((await call({maxCalls:10})).status,409);assert.equal((await call({libraryAction:'select',libraryId:'anything'})).status,409);
+ assert.equal((await call({cancelQuery:true,libraryAction:'select',libraryId:'anything'})).status,409);assert.equal((await call({action:'stop',libraryAction:'select',libraryId:'anything'})).status,409);
  assert.equal((await call(null,other,'GET')).body.service,'build-mismatch');assert.equal(fetched,0);
  assert.equal((await call({cancelQuery:true})).status,200);assert.equal(cancelled,1);
  assert.equal((await call({maxCalls:10},id)).status,200);

@@ -159,7 +159,10 @@ export function registerPanelBridge(ctx: any, settings: PanelSettings, endpoint:
           try {
             let body = ''; for await (const chunk of req) { body += chunk; if (Buffer.byteLength(body) > 4096) { send(413, { code: 'BODY_TOO_LARGE' }); return; } }
             const value = JSON.parse(body);
-            if(build && (build.valid===false || req.headers['x-knowledge-client-build']!==build.id) && !(value?.cancelQuery===true) && value?.action!=='stop' && value?.action!=='status'){send(409,{code:'BUILD_MISMATCH'});return;}
+            const recovery = value && (
+              (Object.keys(value).every(key=>['cancelQuery','requestId'].includes(key)) && value.cancelQuery===true && (value.requestId===undefined || /^kq-[a-zA-Z0-9_-]{8,60}$/.test(value.requestId))) ||
+              (Object.keys(value).length===1 && ['stop','status'].includes(value.action)));
+            if(build && (build.valid===false || req.headers['x-knowledge-client-build']!==build.id) && !recovery){send(409,{code:'BUILD_MISMATCH'});return;}
             if(value && Object.hasOwn(value,'libraryAction')) {
               if(!libraryPanel){send(503,{code:'LIBRARY_CONTROL_UNAVAILABLE'});return;}
               try{send(200,await libraryPanel.act(sessionId,value));}
