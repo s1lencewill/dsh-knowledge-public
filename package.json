@@ -70,8 +70,8 @@
     "release:audit": "node scripts/package-release.mjs audit"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2"
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-tools": {
@@ -82,10 +82,11 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
-    "typescript": "^5.9.0",
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-session-format-v3-to-v4": "0.2.0-rc.2",
     "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2"
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
   },
   "engines": {
     "node": ">=24"
