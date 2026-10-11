@@ -53,6 +53,11 @@ jobs:
           if ($LASTEXITCODE) { throw 'Node lock could not be installed' }
           npm install --global @deepseek-ai/dsh@0.2.0-rc.2 --ignore-scripts
           if ($LASTEXITCODE) { throw 'Pinned DSH host install failed' }
+          $npmRoot = (npm root --global).Trim()
+          if ($LASTEXITCODE) { throw 'Global npm root lookup failed' }
+          $hostPackage = Join-Path $npmRoot '@deepseek-ai/dsh'
+          if (-not (Test-Path (Join-Path $hostPackage 'package.json'))) { throw 'Installed DSH package missing' }
+          "DSH_BIN_DIR=$hostPackage" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           npm run build
           if ($LASTEXITCODE) { throw 'Build failed' }
       - name: Build tool binaries from pinned upstream source and stage runtime
@@ -119,4 +124,5 @@ jobs:
             .local/ci/build-consistency/report.json
             .local/ci/candidate/audit.json
             .local/ci/install-acceptance/report.json
+            .local/ci/install-acceptance/install-previous.log
           if-no-files-found: warn
