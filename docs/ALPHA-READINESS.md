@@ -1,11 +1,7 @@
-# Alpha release gates
+# Windows Developer Alpha readiness
 
-Candidate: 0.1.0-alpha.9, Apache-2.0 for original code; third-party licenses retained. private:true stays enabled until all required gates pass. Repository stays private while Windows CI is pending.
+Original code is Apache-2.0; third-party terms are retained. Sirchmunk is the primary retrieval engine, with no embedding-model execution branch. Runtime binaries and model keys are not included.
 
-Accounts verified: s1lencewill (GitHub and npm). Proposed public names: @s1lencewill/dsh-knowledge and s1lencewill/dsh-knowledge-public. No private project history is copied.
+Publish only the exact archive whose source commit, version and SHA256 match the final successful clean Windows reports. Candidate CI 38105510507 passed Python 637/637 with no skips, Node 369/369, archive installation/read/upgrade/rollback 29/29, installed payload 14/14 and mismatch checks 3/3. That was a private candidate; it does not certify bytes changed for public release. The public-preparation archive requires renewed acceptance.
 
-Build consistency: [contract](BUILD-CONSISTENCY.md). Local regressions and exact-package checks are recorded separately from a clean Windows run. Every skipped security test blocks release. The workflow has zero model calls and retains synthetic JSON reports, not runtime binaries or credentials.
-
-A matching payload is not evidence of retrieval quality or of a live marketplace upgrade. Do not claim those capabilities from a unit test. Public release remains blocked until required Windows and host update evidence is complete.
-
-Windows Server CI is not desktop interaction acceptance.
+Windows Server CI does not certify desktop interactions, login triggers, real marketplace updates, ordinary non-admin accounts or retrieval quality. Retrieval coverage and historical DEEP failures remain known limitations. Account authentication does not bypass npm 2FA. Publication status and the final immutable checksums are reported with the GitHub pre-release assets.

@@ -1,27 +1,22 @@
 # DSH Knowledge — Windows Developer Alpha
 
-Sirchmunk-backed personal knowledge workspace for DSH. Search PDF/Markdown content with an ordinary LLM, read source windows, and inspect answer citations in the sidebar. No embedding model is required.
+A personal PDF/Markdown knowledge workspace for DSH. Sirchmunk is the primary retrieval engine; it uses an ordinary LLM without an embedding-model execution branch. Read source windows and navigate answer citations in the sidebar.
 
-**Local release preparation only. Original-code license is Apache-2.0; account permissions, clean Windows installation and marketplace update acceptance are pending. This snapshot is not publicly released.**
+This is a developer Alpha for Windows. It requires Node 24+, Python 3.13, DSH 0.2.0-rc.2, a locally built AppContainer runtime, and your own model configuration. No runtime binaries or shared API key are bundled. Retrieval may miss documents, conditions or one side of a comparison. Historical DEEP NO_RESULT_FILE failures remain a known limitation. Scanned PDFs/images have no OCR path. Exact quote coordinates do not establish that a claim is supported.
 
-## Requirements and setup
+## Install and verify
 
-Windows 10/11 with AppContainer, Node 24+, Python 3.13 and DSH 0.2.0-rc.2. A local runtime and your own model provider configuration are required. Read [QUICKSTART](docs/QUICKSTART.md), [runtime preparation](docs/RUNTIME-BUILD.md) and [limitations](docs/LIMITATIONS.md) before installing. There is no bundled runtime or shared API key.
+1. Download the exact npm Alpha archive or the matching GitHub pre-release asset; check SHA256 against the published checksum.
+2. Extract it into an independent directory. Prepare Python dependencies and a runtime from the matching public source revision, following [RUNTIME-BUILD](docs/RUNTIME-BUILD.md).
+3. Run the instance installer with explicit `--target`, `--python`, `--runtime-from` and matching `--tools-from`. Run `doctor` before `start`; missing/stale runtime is a failure, never a reason to disable isolation.
+4. Open the instance's login link and add an existing DSH workspace. This is not yet a knowledge library. In the workbench choose **添加知识库**, preview a folder under that workspace, review issues and provider-consent scope, build, then select it for the session. Workspace defaults are separate.
 
-Build the JavaScript with `npm ci --ignore-scripts` and `npm run build`. This command does not create a Python environment or container runtime. Use `node trial/install.mjs --help` for explicit instance setup. Keep app code separate from data.
+See [QUICKSTART](docs/QUICKSTART.md) for exact commands, configuration, start/stop, updates and data-preserving uninstall. Source development uses `npm ci --ignore-scripts` and `npm run build`; this does not prepare Python or a runtime. Switching library affects subsequent calls only; source updates require a preview and renewed authorization.
 
-The workbench provides library setup, per-session selection and workspace defaults, previewed library updates, precise source excerpts, answer citation navigation, service state and per-turn limits. Selecting a folder does not itself grant permission to send content to model providers.
+## Upgrades and evidence
 
-[Privacy](docs/PRIVACY.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Release status](docs/ALPHA-READINESS.md)
+Upgrade both frontend and backend from the same audited package. A file replacement does not reload a running process. Compare build identities, restart the matching host/backend, and require runtime staging freshness. Mismatch blocks knowledge dispatch while preserving health/cancellation. Keep a previous app generation and user data for rollback.
 
-## Limits
+The release's CI reports cover a fresh Windows Server runner, cold source/tool/runtime preparation, zero-skip Python checks and actual archive install/read/upgrade/rollback. They do not certify Windows 10/11 desktop interaction, logon triggers, live marketplace updates, ordinary non-admin accounts, or retrieval/answer quality. Never infer those from the installation checks.
 
-Retrieval may miss a document or one side of a comparison. Exact source coordinates do not prove a claim. The historical DEEP NO_RESULT_FILE failure remains unresolved. Scanned PDFs/images have no OCR path; formulas/layout require human checks. Answer numbers are plain text; use the answer sources action to navigate. Original-file opening remains unavailable.
-
-## Licensing
-
-Original project code is Apache-2.0; see LICENSE and NOTICE. Third-party components retain their own licenses; the rga source modification is AGPL-3.0-or-later. The candidate remains private:true until account permissions, cold runtime construction, clean Windows and marketplace update gates pass. Licensing is confirmed; publication readiness is not.
-
-## Source validation
-
-Generate only synthetic local fixtures with `.venv/Scripts/python.exe scripts/setup-fixtures.py` before the Python suite. Then run `.venv/Scripts/python.exe -m unittest discover -s tests -p "*_test.py"`. Engine/AppContainer tests require an explicitly prepared runtime and tools; report their skips separately.
+Original code is Apache-2.0; third-party terms remain separate, including the AGPL rga source patch. Read [notices](THIRD-PARTY-NOTICES.md), [limitations](docs/LIMITATIONS.md), [privacy](docs/PRIVACY.md), [security](SECURITY.md), and [build consistency](docs/BUILD-CONSISTENCY.md). Do not attach private documents, credentials or raw sessions to public issues.

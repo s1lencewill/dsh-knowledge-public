@@ -16,7 +16,7 @@ correct. See [LIMITATIONS.md](LIMITATIONS.md) — read that before you rely on a
 | **Windows 10/11** | the isolation path uses the Windows AppContainer | — |
 | **Node.js ≥ 24** | runs DSH, the plugin and the install/doctor/start/stop scripts | `node --version` |
 | **DSH 0.2.0-rc.2** (`@deepseek-ai/dsh`) | the host that loads the plugin; the version is exact, because the plugin declares its SDK peers at that version and DSH checks the peer itself (0.1.7 refused a mismatch at install time; 0.2 warns and requires an explicit `allow-version` exemption) | `dsh --version` |
-| **Python 3.13** | runs the knowledge service | `python -c "import sys;print(sys.version)"` |
+| **Miniconda Python 3.13** | tested base layout for the knowledge service and runtime | `python -c "import sys;print(sys.version)"` |
 | **The pinned Python packages** | the service's imports | see step 2 |
 | **A model provider** | answers your questions; the engine also uses it for retrieval | a DeepSeek API key in DSH's credential store |
 | **The container runtime** | the service runs the engine with `isolation=required` and refuses to start without it | `doctor` tells you |
@@ -26,12 +26,14 @@ packages, so redistributing it has conditions this package does not take on — 
 [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md). The installer takes a runtime you name, or `doctor`
 reports it missing. Nothing here silently disables isolation instead.
 
-## 2. Install the service's Python packages
+## 2. Prepare Python and the matching runtime
 
 ```powershell
-py -3.13 -m venv .venv
+python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r engine\requirements-win-py313.lock
 ```
+
+Use the intended Miniconda Python 3.13 shell and follow [RUNTIME-BUILD](RUNTIME-BUILD.md) from the matching public source tag; the npm archive does not contain build scripts or a runtime.
 
 The lock file pins all 96 distributions, including `sirchmunk==0.1.0`. If your Python is not 3.13 the service
 will refuse to start; `doctor` says so explicitly rather than running anyway.

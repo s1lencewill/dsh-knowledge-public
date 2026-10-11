@@ -1,8 +1,6 @@
 # Version and dependencies
 
-**Version:** `0.1.0-alpha.3` — *Windows personal knowledge-base Q&A trial, based on Sirchmunk, no embedding-model
-branch, verifiable provenance.* A trial build for authorised private trial only: not a release, not published,
-with public-release gates still pending. Original code is Apache-2.0 (LICENSE and NOTICE); third-party components retain their own terms.
+**Version:** `0.1.0-alpha.10` — Windows developer Alpha, based on Sirchmunk, no embedding-model execution branch, verifiable source coordinates. Original code is Apache-2.0; third-party terms remain separate. Installation CI is not retrieval or desktop interaction certification.
 
 ## What is in the package
 

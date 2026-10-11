@@ -90,3 +90,7 @@ binaries are an aggregate, not a combined work.
    texts. Relevant only if that path is re-enabled.
 4. **`fontTools` 4.65.0** (MIT) is installed outside the lock, so the PDF-extraction dependency set is not
    fully reproducible from `engine/requirements-win-py313.lock`.
+
+## Public Alpha source-build attribution
+
+Historical copied rg binaries discussed above are not included in this npm package or offered as release assets. The Alpha runtime recipe builds rg from fixed upstream revision af60c2de9d85e7f3d81c78601669468cf02dabab (ripgrep 15.1.0, MIT/Unlicense) and rga from the revision/license/patch bindings in tools/rga/SOURCE.json. The build report records toolchain and resulting hashes. No runtime binary redistribution is provided. Remaining wheel-license detail questions concern user-built dependencies, not files conveyed in the audited npm archive; do not treat these notes as permission to redistribute that runtime without meeting its terms.
